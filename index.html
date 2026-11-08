@@ -832,53 +832,71 @@ function openSavedLog(){
   show("log-viewer");
   setStatus(`LogViewer ${savedDay}. ${messages.length} saved lines. This is not live chat.`);
 }
-function paintChatBubbles(){
-  const pool = messages.slice(-28).slice().sort((a,b)=>a.text.length-b.text.length||a.time.localeCompare(b.time));
-  const packed = packCircles(pool.map(msg=>({label:msg.user, n:msg.text.length, msg})));
-  const host = $("chatCloud");
-  host.innerHTML = "";
-  $("chatBubbleStatus").textContent = packed.length ? `${packed.length} messages` : "No messages in this view.";
-  if (!packed.length) return;
-  const width = host.clientWidth || 640;
-  const height = host.clientHeight || 360;
-  let minX=Infinity,minY=Infinity,maxX=-Infinity,maxY=-Infinity;
-  packed.forEach(circle=>{
+let chatCamX=0, chatCamY=0, chatCamScale=1, chatFitScale=1, chatViewCustom=false;
+let chatDrag=null;
+function chatFit(circles){
+  const host=$("chatCloud");
+  const width=host.clientWidth, height=host.clientHeight;
+  if (width<20 || height<20) return null;
+  let minX=Infinity, minY=Infinity, maxX=-Infinity, maxY=-Infinity;
+  circles.forEach(circle=>{
     minX=Math.min(minX, circle.x-circle.r);
     minY=Math.min(minY, circle.y-circle.r);
     maxX=Math.max(maxX, circle.x+circle.r);
     maxY=Math.max(maxY, circle.y+circle.r);
   });
-  const scale = Math.min((width-32)/Math.max(1,maxX-minX), (height-32)/Math.max(1,maxY-minY));
-  const camX = (width-(minX+maxX)*scale)/2;
-  const camY = (height-(minY+maxY)*scale)/2;
-  packed.forEach(circle=>{
-    const msg = circle.item.msg;
-    const size = circle.r*2*scale;
-    const slot = document.createElement("div");
-    slot.className = "slot";
-    slot.style.left = (camX+(circle.x-circle.r)*scale)+"px";
-    slot.style.top = (camY+(circle.y-circle.r)*scale)+"px";
-    slot.style.width = slot.style.height = size+"px";
-    const bubble = document.createElement("button");
-    bubble.type = "button";
-    bubble.className = "bubble";
-    bubble.style.width = bubble.style.height = "100%";
-    bubble.style.background = msg.platform==="twitch" ? "#4a2f78" : "#1a1a1a";
-    bubble.style.color = "#fff";
-    bubble.style.borderColor = msg.platform==="twitch" ? "#9370db" : "#e53935";
-    bubble.style.fontSize = Math.max(8, Math.min(14, size*0.11))+"px";
-    bubble.style.fontWeight = "500";
-    bubble.style.lineHeight = "1.15";
-    bubble.style.whiteSpace = "normal";
-    bubble.textContent = size < 36 ? "" : `${msg.user}\n${msg.time}\n${msg.text}`;
-    bubble.title = `[${msg.time}] ${msg.platform} ${msg.user}: ${msg.text}`;
-    bubble.addEventListener("click", ()=>{
-      $("chatBubbleTitle").textContent = `${msg.user} · ${msg.time}`;
-      $("chatBubbleLine").innerHTML = row(msg, "");
-    });
-    slot.appendChild(bubble);
-    host.appendChild(slot);
+  const pad=16;
+  const scale=Math.min((width-pad*2)/Math.max(1,maxX-minX), (height-pad*2)/Math.max(1,maxY-minY));
+  return {width, height, minX, minY, maxX, maxY, scale};
+}
+function applyChatCamera(){
+  const circles=window._chatPacked||[];
+  document.querySelectorAll("#chatCloud .slot").forEach(slot=>{
+    const circle=circles[+slot.dataset.i];
+    if (!circle) return;
+    const msg=circle.item.msg;
+    const size=circle.r*2*chatCamScale;
+    slot.style.left=(chatCamX+(circle.x-circle.r)*chatCamScale)+"px";
+    slot.style.top=(chatCamY+(circle.y-circle.r)*chatCamScale)+"px";
+    slot.style.width=slot.style.height=size+"px";
+    const bubble=slot.querySelector(".bubble");
+    bubble.style.fontSize=Math.max(8, Math.min(14, size*0.11))+"px";
+    bubble.textContent=size<36 ? "" : `${msg.user}\n${msg.time}\n${msg.text}`;
   });
+}
+function placeChat(circles){
+  const host=$("chatCloud");
+  if (!circles.length) return;
+  const fit=chatFit(circles);
+  if (!fit){
+    if (!host.dataset.waiting){
+      host.dataset.waiting="1";
+      requestAnimationFrame(()=>{ delete host.dataset.waiting; placeChat(circles); });
+    }
+    return;
+  }
+  chatFitScale=fit.scale;
+  if (!chatViewCustom){
+    chatCamScale=fit.scale;
+    chatCamX=(fit.width-(fit.minX+fit.maxX)*chatCamScale)/2;
+    chatCamY=(fit.height-(fit.minY+fit.maxY)*chatCamScale)/2;
+  }
+  host.innerHTML=circles.map((circle,index)=>{
+    const msg=circle.item.msg;
+    const fill=msg.platform==="twitch" ? "#4a2f78" : "#1a1a1a";
+    const edge=msg.platform==="twitch" ? "#9370db" : "#e53935";
+    return `<div class="slot" data-i="${index}"><button class="bubble" type="button" data-chat="${msg.id}" title="${esc(msg.time+" "+msg.platform+" "+msg.user+": "+msg.text)}" style="width:100%;height:100%;background:${fill};color:#fff;border-color:${edge};font-weight:500;line-height:1.15;white-space:normal"></button></div>`;
+  }).join("");
+  applyChatCamera();
+}
+function paintChatBubbles(){
+  const pool = messages.slice(-28).slice().sort((a,b)=>a.text.length-b.text.length||a.time.localeCompare(b.time));
+  const packed = packCircles(pool.map(msg=>({label:msg.user, n:msg.text.length, msg})));
+  window._chatPacked = packed;
+  $("chatBubbleStatus").textContent = packed.length ? `${packed.length} messages` : "No messages in this view.";
+  const host=$("chatCloud");
+  if (!packed.length){ host.innerHTML=`<div class="note">No messages in this view.</div>`; return; }
+  placeChat(packed);
 }
 function show(next){
   tab = next;
@@ -1125,7 +1143,10 @@ $("swatches").onclick = e=>{
   setStatus(`${name} background. Twitch rows stay purple. YouTube rows stay dark.`);
 };
 document.querySelector('[data-theme="Dark"]').classList.add("on");
-window.addEventListener("resize", ()=>{ if (tab==="words" && window._packed) placeCloud(window._packed); });
+window.addEventListener("resize", ()=>{
+  if (tab==="words" && window._packed) placeCloud(window._packed);
+  if (tab==="chat-bubbles" && window._chatPacked) placeChat(window._chatPacked);
+});
 $("bubbles").addEventListener("wheel", e=>{
   const circles=window._packed||[];
   if (!circles.length || camScale<=0 || tab!=="words") return;
@@ -1148,19 +1169,63 @@ $("bubbles").addEventListener("mousedown", e=>{
   $("bubbles").classList.add("grabbing");
 });
 window.addEventListener("mousemove", e=>{
-  if (!wordDrag) return;
-  camX+=e.clientX-wordDrag.x;
-  camY+=e.clientY-wordDrag.y;
-  wordDrag={x:e.clientX, y:e.clientY};
-  viewCustom=true;
-  applyCamera();
+  if (wordDrag){
+    camX+=e.clientX-wordDrag.x;
+    camY+=e.clientY-wordDrag.y;
+    wordDrag={x:e.clientX, y:e.clientY};
+    viewCustom=true;
+    applyCamera();
+  }
+  if (chatDrag){
+    chatCamX+=e.clientX-chatDrag.x;
+    chatCamY+=e.clientY-chatDrag.y;
+    chatDrag={x:e.clientX, y:e.clientY};
+    chatViewCustom=true;
+    applyChatCamera();
+  }
 });
 window.addEventListener("mouseup", e=>{
-  if (e.button!==1 || !wordDrag) return;
-  wordDrag=null;
-  $("bubbles").classList.remove("grabbing");
+  if (e.button!==1) return;
+  if (wordDrag){
+    wordDrag=null;
+    $("bubbles").classList.remove("grabbing");
+  }
+  if (chatDrag){
+    chatDrag=null;
+    $("chatCloud").classList.remove("grabbing");
+  }
 });
 $("bubbles").addEventListener("auxclick", e=>{ if (e.button===1) e.preventDefault(); });
+$("chatCloud").addEventListener("wheel", e=>{
+  const circles=window._chatPacked||[];
+  if (!circles.length || chatCamScale<=0 || tab!=="chat-bubbles") return;
+  e.preventDefault();
+  const bounds=$("chatCloud").getBoundingClientRect();
+  const x=e.clientX-bounds.left, y=e.clientY-bounds.top;
+  const worldX=(x-chatCamX)/chatCamScale, worldY=(y-chatCamY)/chatCamScale;
+  const floor=Math.max(0.05, chatFitScale*0.25);
+  const ceiling=Math.max(floor, chatFitScale*40);
+  chatCamScale=Math.min(ceiling, Math.max(floor, chatCamScale*(e.deltaY<0?1.12:1/1.12)));
+  chatCamX=x-worldX*chatCamScale;
+  chatCamY=y-worldY*chatCamScale;
+  chatViewCustom=true;
+  applyChatCamera();
+}, {passive:false});
+$("chatCloud").addEventListener("mousedown", e=>{
+  if (e.button!==1 || tab!=="chat-bubbles" || !(window._chatPacked||[]).length) return;
+  e.preventDefault();
+  chatDrag={x:e.clientX, y:e.clientY};
+  $("chatCloud").classList.add("grabbing");
+});
+$("chatCloud").addEventListener("auxclick", e=>{ if (e.button===1) e.preventDefault(); });
+$("chatCloud").addEventListener("click", e=>{
+  const button=e.target.closest("[data-chat]");
+  if (!button) return;
+  const msg=messages.find(item=>String(item.id)===button.dataset.chat);
+  if (!msg) return;
+  $("chatBubbleTitle").textContent=`${msg.user} · ${msg.time}`;
+  $("chatBubbleLine").innerHTML=row(msg, "");
+});
 let screenDrag=null;
 function screenList(){
   const list=["all","twitch","youtube","twitch-chat","youtube-chat","chat-bubbles","words"];
