@@ -117,7 +117,7 @@ mark{background:orange;color:#111;border-radius:2px}
 <body>
 <div class="wrap">
   <h1>DuoChat 1.0</h1>
-  <p class="lead">DuoChat 1.0 is a local window for reading Twitch and YouTube live chat together. You still type in your chat client. This is an interactive mock up of the real app with two fake logs. When online, real Twitch channel emotes are shown. Click through it the same way you click the app.</p>
+  <p class="lead">DuoChat 1.0 reads Twitch and YouTube live chat together, on a Windows window or on an Android phone or tablet. You still type in your chat client. This is an interactive mock up of both apps with two fake logs. When online, real Twitch channel emotes are shown. Click or tap through it the same way you use the app.</p>
   <div class="app" id="app">
     <div class="chrome">
       <div class="brand">DuoChat 1.0 <button id="setup" type="button">Setup</button></div>
@@ -197,7 +197,7 @@ mark{background:orange;color:#111;border-radius:2px}
       <section class="page" data-page="setup">
         <div class="note"><strong>Setup</strong> remembers the Twitch channel, the YouTube video, and the window size. The color buttons change the window. Chat rows keep their own colors.</div>
         <div class="note">
-          <strong>Daily logs</strong> start on. New lines go to Documents\DuoChat\Logs. Uncheck this to keep chat only in the window. Files already saved stay on disk.
+          <strong>Daily logs</strong> start on. On Windows, new lines go to Documents\DuoChat\Logs. On Android, the same file names stay in the app’s own DuoChat folder, and Open folder hands the plain text to another app. Uncheck this to keep chat only in the session. Files already saved stay on disk.
           <label class="check" style="margin-top:8px"><input id="saveLogs" type="checkbox" checked> Save daily logs</label>
           <div id="savedDays" style="margin:8px 0"></div>
           <button id="openLog" type="button">Open</button>
@@ -213,7 +213,7 @@ mark{background:orange;color:#111;border-radius:2px}
           </div>
         </div>
         <div class="note">
-          <strong>Graphics</strong> starts at Normal: landscape, right side up. In the app these buttons turn the monitor DuoChat is on. Other windows on that monitor turn too. Portrait uses the swapped size.
+          <strong>Graphics</strong> is the Windows app. It starts at Normal: landscape, right side up. Those buttons turn the monitor DuoChat is on. Other windows on that monitor turn too. Portrait uses the swapped size. Android has no monitor flip. The phone or tablet turns itself, and Setup can keep the screen on.
           <div class="swatches" id="turns"></div>
           <div class="swatches" id="sizes"></div>
         </div>
@@ -226,15 +226,15 @@ mark{background:orange;color:#111;border-radius:2px}
   <div class="lessons">
     <article>
       <h2>Tabs</h2>
-      <p>All mixes both rooms by the clock. Twitch and YouTube each keep one room. Twitch Chat and YouTube Chat are the hidden live pages the app reads. They are not a second copy of the log. Drag a screen left or right to pull the next one over. The row ends at the first and last tab.</p>
+      <p>All mixes both rooms by the clock. Twitch and YouTube each keep one room. Twitch Chat and YouTube Chat are the hidden live pages the app reads. They are not a second copy of the log. Drag or swipe a screen left or right to pull the next one over. The row ends at the first and last tab. The same row is on Windows and Android.</p>
     </article>
     <article>
       <h2>A name</h2>
-      <p>Right-click Won_Won_99 on “IT TASTES LIKE SPACE AND PEPPERONI”. Chat lists only that nickname. Chat Commonalities lists lines that share a useful word. Words opens a Won_Won_99 Words tab. Copy puts that line on the scratch pad.</p>
+      <p>On Windows, right-click Won_Won_99 on “IT TASTES LIKE SPACE AND PEPPERONI”. On Android, long-press that name. Chat lists only that nickname. Chat Commonalities lists lines that share a useful word. Words opens a Won_Won_99 Words tab. Copy puts that line on the scratch pad.</p>
     </article>
     <article>
       <h2>Words</h2>
-      <p>Right-click taters to pin “what is taters?!”. Click that note. A smaller note appears on tater, and on the slow-mode line, because that line contains tater. A message already on screen is not added again. × on a branch closes that branch. × on the first note, another right-click, or Esc closes the tree.</p>
+      <p>On Windows, right-click taters to pin “what is taters?!”. On Android, long-press that bubble. Click or tap the note. A smaller note appears on tater, and on the slow-mode line, because that line contains tater. A message already on screen is not added again. × on a branch closes that branch. × on the first note, another right-click or long-press, or Esc or Back, closes the tree. The Windows wheel zooms and the middle mouse drags. Android pinches to zoom and uses two fingers to drag.</p>
     </article>
     <article>
       <h2>One person</h2>
@@ -242,7 +242,7 @@ mark{background:orange;color:#111;border-radius:2px}
     </article>
     <article>
       <h2>Saved logs</h2>
-      <p>Setup starts with Save daily logs checked. Open the practice day. The tab reads LogViewer and the date, so it is obvious those rows are a saved file and not the live rooms. × closes that tab. Open folder, in the real app, shows Documents\DuoChat\Logs so a .txt file can be read in another editor.</p>
+      <p>Setup starts with Save daily logs checked. Open the practice day. The tab reads LogViewer and the date, so it is obvious those rows are a saved file and not the live rooms. × closes that tab. On Windows, Open folder shows Documents\DuoChat\Logs. On Android, Open folder hands that day’s plain text to another app.</p>
     </article>
   </div>
 </div>
@@ -381,8 +381,8 @@ const captions = {
   "twitch-chat":"This is a mock up. This screen shows the active messages when in an online chat. When online, real Twitch channel emotes are shown.",
   "youtube-chat":"This is a mock up. This screen shows the active messages when in an online chat. When online, real Twitch channel emotes are shown.",
   copied:"Copied is a scratch pad for a report. Delete works only here. The log itself is left alone. Two lines are already here: Granger’s crust, and Mithrandir’s timeout.",
-  words:"Words counts the open view. Common words starts on, so ordinary words stay out. Click a bubble for its lines. Right-click a bubble to pin the newest line. The wheel zooms toward the pointer. Hold the middle mouse button to drag the cloud.",
-  setup:"Setup stores the rooms, the background, and the monitor. Graphics starts at Normal: landscape and right side up. Daily logs start on. White and Pink are the backgrounds that darken the purple Twitch rows. YouTube rows stay dark.",
+  words:"Words counts the open view. Common words starts on, so ordinary words stay out. Click or tap a bubble for its lines. Right-click on Windows, or long-press on Android, to pin the newest line. On Windows the wheel zooms and the middle mouse drags. On Android, pinch to zoom and drag with two fingers.",
+  setup:"Setup stores the rooms and the background on both apps. Graphics and the monitor flip are Windows only. Android turns with the device and can keep the screen on. Daily logs start on. White and Pink are the backgrounds that darken the purple Twitch rows. YouTube rows stay dark.",
   "log-viewer":"LogViewer plus the date is a saved file. All, Twitch, and YouTube stay live. This practice day is 2026-11-07."
 };
 let tab = "all";
@@ -941,15 +941,15 @@ $("turns").onclick = e=>{
   app.style.transform = angle ? `rotate(${angle}deg)` : "";
   document.querySelectorAll("[data-turn]").forEach(b=>b.classList.toggle("on", +b.dataset.turn===angle));
   const label = {0:"Normal. Landscape, right side up.",90:"Portrait.",180:"Upside down.",270:"Portrait flipped."}[angle];
-  setStatus(label + " In the app this turns the monitor DuoChat is on.");
+  setStatus(label + " On Windows this turns the monitor DuoChat is on. Android turns with the device.");
 };
 $("sizes").onclick = e=>{
   const width = e.target.dataset.size;
   if (!width) return;
   document.querySelectorAll("[data-size]").forEach(b=>b.classList.toggle("on", b.dataset.size===width));
   setStatus(width==="0"
-    ? "This monitor keeps its current pixel size. Portrait still swaps the sides."
-    : `In the app, ${e.target.textContent} sets this monitor. Portrait uses the swapped size.`);
+    ? "On Windows this monitor keeps its current pixel size. Portrait still swaps the sides. Android turns with the device."
+    : `On Windows, ${e.target.textContent} sets this monitor. Portrait uses the swapped size. Android turns with the device.`);
 };
 $("saveLogs").onchange = ()=>setStatus($("saveLogs").checked?"Daily logs are on.":"Daily logs are off. This window still shows chat.");
 document.querySelectorAll("[data-scope]").forEach(b=>b.onclick=()=>{
