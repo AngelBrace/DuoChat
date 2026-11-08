@@ -95,6 +95,7 @@ mark{background:orange;color:#111;border-radius:2px}
 .bubble.on{box-shadow:0 0 0 3px #7aa2ff}
 .bubble.lit{box-shadow:0 0 0 3px #f5c14a}
 .bubble small{display:block;font-weight:650;font-size:11px}
+.hl{border-radius:3px;padding:0 1px}
 .lines{height:200px;border-top:1px solid var(--border);display:flex;flex-direction:column;background:var(--window)}
 .lines h3{margin:0;padding:8px 10px 0;font-size:13px}
 .menu{
@@ -208,6 +209,16 @@ mark{background:orange;color:#111;border-radius:2px}
       </section>
       <section class="page" data-page="setup">
         <div class="note"><strong>Setup</strong> remembers the Twitch channel, the YouTube video, and the window size. The color buttons change the window. Chat rows keep their own colors.</div>
+        <div class="note">
+          <strong>Highlights</strong> keep a color on every matching word. Light colors use black letters. Highlight channel paints the open Twitch name in green. This practice log starts with taters.
+          <div style="display:flex;gap:8px;margin-top:8px">
+            <input id="highlightWord" type="text" placeholder="Word" style="flex:1;background:#101014;color:var(--text);border-color:var(--border)">
+            <button id="addHighlight" type="button">Add</button>
+          </div>
+          <div class="swatches" id="highlightColors"></div>
+          <div id="highlightList" style="margin:8px 0"></div>
+          <label class="check"><input id="highlightChannel" type="checkbox" checked> Highlight channel</label>
+        </div>
         <div class="note">
           <strong>Daily logs</strong> start on. On Windows, new lines go to Documents\DuoChat\Logs. On Android, the same file names stay in the app’s own DuoChat folder, and Open folder hands the plain text to another app. Uncheck this to keep chat only in the session. Files already saved stay on disk.
           <label class="check" style="margin-top:8px"><input id="saveLogs" type="checkbox" checked> Save daily logs</label>
@@ -424,6 +435,82 @@ function mark(s,q){
   const re = new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g,"\\$&"),"ig");
   return safe.replace(re, m=>`<mark>${m}</mark>`);
 }
+const HL = {
+  Orange:{fill:"#FF9800",ink:"#111"},
+  Yellow:{fill:"#FFEB3B",ink:"#111"},
+  Green:{fill:"#69F0AE",ink:"#111"},
+  Aquamarine:{fill:"#7FFFD4",ink:"#111"},
+  "Light pink":{fill:"#FFB6C1",ink:"#111"},
+  Purple:{fill:"#7E57C2",ink:"#fff"},
+  Red:{fill:"#E53935",ink:"#fff"}
+};
+let highlights = [{word:"taters", color:"Orange"}];
+let highlightPick = "Orange";
+let highlightChannel = true;
+const guideChannel = "blukitsune9";
+function activeRules(){
+  const rules = highlights.filter(item=>item.word.trim()).map(item=>({word:item.word.trim(), color:HL[item.color]?item.color:"Orange"}));
+  if (highlightChannel && !rules.some(rule=>rule.word.toLowerCase()===guideChannel))
+    rules.push({word:guideChannel, color:"Green"});
+  return rules;
+}
+function wordChar(ch){ return /[0-9A-Za-z]/.test(ch||""); }
+function highlightHits(text, rules){
+  const used = new Array((text||"").length).fill(false);
+  const found = [];
+  [...rules].sort((a,b)=>b.word.length-a.word.length).forEach(rule=>{
+    const lower = (text||"").toLowerCase();
+    const needle = rule.word.toLowerCase();
+    let index = 0;
+    while (needle && index<=lower.length-needle.length){
+      const at = lower.indexOf(needle, index);
+      if (at<0) break;
+      const end = at+needle.length;
+      let free = (at===0 || !wordChar(text[at-1])) && (end===text.length || !wordChar(text[end]));
+      for (let i=at; free && i<end; i++) if (used[i]) free=false;
+      if (free){
+        for (let i=at;i<end;i++) used[i]=true;
+        found.push({start:at, end, color:rule.color});
+      }
+      index = at+1;
+    }
+  });
+  found.sort((a,b)=>a.start-b.start);
+  return found;
+}
+function wholeColor(text){
+  const hits = highlightHits(text, activeRules());
+  return hits.length===1 && hits[0].start===0 && hits[0].end===text.length ? hits[0].color : "";
+}
+function paintText(text, query){
+  const rules = activeRules();
+  const needle = (query||"").trim();
+  const listed = rules.some(rule=>rule.word.toLowerCase()===needle.toLowerCase());
+  const hits = highlightHits(text||"", rules);
+  if (!hits.length) return mark(text, listed?"":query);
+  let html = "";
+  let cursor = 0;
+  hits.forEach(hit=>{
+    if (hit.start>cursor) html += mark(text.slice(cursor, hit.start), listed?"":query);
+    const tone = HL[hit.color]||HL.Orange;
+    html += `<span class="hl" style="background:${tone.fill};color:${tone.ink}">${esc(text.slice(hit.start, hit.end))}</span>`;
+    cursor = hit.end;
+  });
+  if (cursor<text.length) html += mark(text.slice(cursor), listed?"":query);
+  return html;
+}
+function repaintHighlights(){
+  paintLog();
+  paintCopied();
+  $("savedLog").innerHTML = messages.map(m=>row(m,"")).join("");
+  if (tab==="words") paintWords(false);
+  if (tab==="chat-bubbles") paintChatBubbles();
+  if ($("userPanel").classList.contains("show")){
+    const ids = [...$("userLog").querySelectorAll(".row")].map(item=>+item.dataset.id);
+    $("userLog").innerHTML = ids.map(id=>messages.find(m=>m.id===id)).filter(Boolean).map(m=>row(m)).join("");
+  }
+  paintHighlightList();
+}
 const EMOTES = {
   wutface:"🤨", twitchglitch:"🌀", lul:"😂", lulw:"🤣", notlikethis:"😬",
   pogchamp:"😮", swiftrage:"😡", residentsleeper:"😴", twitchlit:"🔥",
@@ -451,7 +538,7 @@ function rich(text, q){
     const key = part.toLowerCase();
     if (EMOTES[key]) html += emojiImg(EMOTES[key], part, query && key.includes(query.toLowerCase()));
     else if (/^\p{Extended_Pictographic}/u.test(part)) html += emojiImg(part, part, query && part.includes(query));
-    else html += mark(part, query);
+    else html += paintText(part, query);
   }
   return html;
 }
@@ -462,8 +549,10 @@ function icon(m){
 function row(m, extra="", q=""){
   const named = m.user && !["DONATION","TTS","OFFLINE","LIVE"].includes(m.badge);
   const badgeLabel = {DONATION:"💰 DONATION", LIVE:"🔴 LIVE", OFFLINE:"🔴 OFFLINE", TTS:"TTS"};
+  const nameColor = named ? wholeColor(m.user) : "";
+  const nameTone = nameColor ? HL[nameColor] : null;
   const who = named
-    ? `${m.badge==="MOD"?'<span class="tag">MOD</span>':""}<button class="name" type="button" data-id="${m.id}">${mark(m.user, q)}</button>`
+    ? `${m.badge==="MOD"?'<span class="tag">MOD</span>':""}<button class="name" type="button" data-id="${m.id}"${nameTone?` style="background:${nameTone.fill};color:${nameTone.ink}"`:""}>${paintText(m.user, q)}</button>`
     : `<span class="name">${rich(badgeLabel[m.badge]||m.badge||m.user||"")}</span>`;
   const body = m.badge==="LIVE" ? esc(m.user) : rich(m.text, q);
   return `<article class="row ${m.platform}" data-id="${m.id}">${icon(m)}<span class="time">${m.time}</span>${who}<span class="msg">${body}</span>${extra}</article>`;
@@ -667,7 +756,9 @@ function placeCloud(circles){
   const span=Math.max(1, circles.length-1);
   const showNotes=$("messages").checked;
   host.innerHTML=`<div class="cloud">${circles.map((circle,index)=>{
-    const fill=bubbleFill(circles.length===1?1:(circle.rank-1)/span);
+    const saved=wholeColor(circle.item.label);
+    const fill=saved?(HL[saved]||HL.Orange).fill:bubbleFill(circles.length===1?1:(circle.rank-1)/span);
+    const ink=saved?(HL[saved]||HL.Orange).ink:labelColor(fill);
     const key=circle.item.label.toLowerCase();
     const mine=notes.filter(note=>note.key===key);
     const cards=showNotes?mine.map(note=>{
@@ -675,7 +766,7 @@ function placeCloud(circles){
       return `<div class="card ${note.small?"small":""}" title="${esc(msg.time+" "+msg.user+": "+msg.text)}"><button class="line" type="button" data-note="${note.id}">${rich(msg.text)}</button><button class="x" type="button" data-x="${note.id}" aria-label="Close">×</button></div>`;
     }).join(""):"";
     const cls=`${selectedWord===key?" on":""}${notes.some(note=>note.key===key)?" lit":""}`;
-    return `<div class="slot" data-i="${index}" style="z-index:${mine.length?5:1}"><div class="cards">${cards}</div><button class="bubble${cls}" type="button" data-word="${esc(key)}" title="${esc(circle.item.label)} · ${circle.item.n}" style="width:100%;height:100%;background:${fill};color:${labelColor(fill)}"><span class="label">${esc(circle.item.label)}<br><small>${circle.item.n}</small></span></button></div>`;
+    return `<div class="slot" data-i="${index}" style="z-index:${mine.length?5:1}"><div class="cards">${cards}</div><button class="bubble${cls}" type="button" data-word="${esc(key)}" title="${esc(circle.item.label)} · ${circle.item.n}" style="width:100%;height:100%;background:${fill};color:${ink}"><span class="label">${esc(circle.item.label)}<br><small>${circle.item.n}</small></span></button></div>`;
   }).join("")}</div>`;
   applyCamera();
 }
@@ -861,7 +952,8 @@ function applyChatCamera(){
     slot.style.width=slot.style.height=size+"px";
     const bubble=slot.querySelector(".bubble");
     bubble.style.fontSize=Math.max(8, Math.min(14, size*0.11))+"px";
-    bubble.textContent=size<36 ? "" : `${msg.user}\n${msg.time}\n${msg.text}`;
+    bubble.style.whiteSpace="pre-line";
+    bubble.innerHTML=size<36 ? "" : paintText(`${msg.user}\n${msg.time}\n${msg.text}`, "");
   });
 }
 function placeChat(circles){
@@ -1034,6 +1126,44 @@ $("sizes").onclick = e=>{
     : `On Windows, ${e.target.textContent} sets this monitor. Portrait uses the swapped size. Android turns with the device.`);
 };
 $("saveLogs").onchange = ()=>setStatus($("saveLogs").checked?"Daily logs are on.":"Daily logs are off. This window still shows chat.");
+function paintHighlightList(){
+  $("highlightColors").innerHTML = Object.keys(HL).map(name=>{
+    const tone = HL[name];
+    return `<button type="button" data-color="${name}" class="${highlightPick===name?"on":""}" style="background:${tone.fill};color:${tone.ink}">${name}</button>`;
+  }).join("");
+  $("highlightList").innerHTML = highlights.map((item,index)=>{
+    const tone = HL[item.color]||HL.Orange;
+    return `<div style="display:flex;gap:8px;align-items:center;margin:4px 0"><span class="hl" style="background:${tone.fill};color:${tone.ink}">${esc(item.word)}</span><button type="button" data-remove="${index}">Remove</button></div>`;
+  }).join("");
+}
+$("highlightColors").onclick = e=>{
+  const color = e.target.dataset.color;
+  if (!color) return;
+  highlightPick = color;
+  paintHighlightList();
+};
+$("addHighlight").onclick = ()=>{
+  const word = $("highlightWord").value.trim();
+  if (!word){ setStatus("Enter a word to highlight."); return; }
+  highlights = highlights.filter(item=>item.word.toLowerCase()!==word.toLowerCase());
+  highlights.push({word, color:highlightPick});
+  $("highlightWord").value = "";
+  setStatus(`${word} is ${highlightPick}.`);
+  repaintHighlights();
+};
+$("highlightList").onclick = e=>{
+  if (e.target.dataset.remove==null) return;
+  const word = highlights[+e.target.dataset.remove]?.word || "";
+  highlights.splice(+e.target.dataset.remove, 1);
+  setStatus(`Removed ${word}.`);
+  repaintHighlights();
+};
+$("highlightChannel").onchange = ()=>{
+  highlightChannel = $("highlightChannel").checked;
+  setStatus(highlightChannel?"The open Twitch channel is highlighted in green.":"Channel highlight is off.");
+  repaintHighlights();
+};
+paintHighlightList();
 document.querySelectorAll("[data-scope]").forEach(b=>b.onclick=()=>{
   scope=b.dataset.scope; notes=[]; selectedWord=""; paintWords(true);
   document.querySelectorAll("[data-scope]").forEach(x=>x.classList.toggle("on", x===b));
