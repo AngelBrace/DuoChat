@@ -216,6 +216,7 @@ mark{background:orange;color:#111;border-radius:2px}
             <select id="highlightNote"></select>
             <button id="addHighlight" type="button">Add</button>
           </div>
+          <div style="margin-top:8px"><strong>Default color notes</strong></div>
           <div class="swatches" id="highlightColors"></div>
           <div id="highlightList" style="margin:8px 0"></div>
           <label class="check"><input id="highlightChannel" type="checkbox" checked> Highlight channel</label>
@@ -1167,7 +1168,7 @@ $("saveLogs").onchange = ()=>setStatus($("saveLogs").checked?"Daily logs are on.
 function paintHighlightList(){
   $("highlightColors").innerHTML = Object.keys(HL).map(name=>{
     const tone = HL[name];
-    return `<button type="button" data-color="${name}" class="${highlightPick===name?"on":""}" style="background:${tone.fill};color:${tone.ink}">${name}</button>`;
+    return `<button type="button" data-color="${name}" class="${highlightPick===name?"on":""}" style="background:${tone.fill};color:${tone.ink}">${name}<br><small>${COLOR_NOTE[name]||"Do"}</small></button>`;
   }).join("");
   $("highlightList").innerHTML = highlights.map((item,index)=>{
     const tone = HL[item.color]||HL.Orange;
@@ -1178,7 +1179,10 @@ $("highlightColors").onclick = e=>{
   const color = e.target.dataset.color;
   if (!color) return;
   highlightPick = color;
-  if (highlightSounds) playBell(COLOR_NOTE[color] || "Do");
+  highlightNote = COLOR_NOTE[color] || "Do";
+  $("highlightNote").value = highlightNote;
+  setStatus(`${color} is the default color note ${highlightNote}.`);
+  if (highlightSounds) playBell(highlightNote);
   paintHighlightList();
 };
 $("addHighlight").onclick = ()=>{
