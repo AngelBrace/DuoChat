@@ -1,0 +1,1027 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>DuoChat 1.0</title>
+<style>
+:root{
+  --window:#0e0e10;--bar:#18181b;--text:#efeff1;--muted:#aaaaaa;--border:#2f2f35;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:#07080c;color:#efeff1;font:14px/1.45 Segoe UI,system-ui,sans-serif}
+.wrap{max-width:1100px;margin:0 auto;padding:28px 18px 48px}
+h1{margin:0 0 8px;font-size:1.6rem;font-weight:650}
+.lead{margin:0 0 18px;max-width:72ch;color:#b8b8c0}
+.app{
+  height:760px;display:flex;flex-direction:column;background:var(--window);color:var(--text);
+  border:1px solid var(--border);border-radius:14px;overflow:hidden;
+  box-shadow:0 24px 70px rgba(0,0,0,.45)
+}
+.chrome{background:var(--bar);padding:10px 12px 8px;border-bottom:1px solid var(--border)}
+.brand{display:flex;align-items:center;justify-content:space-between;font-weight:700}
+.tabs{display:flex;gap:4px;align-items:center;margin-top:8px;overflow:auto}
+.tabs button{flex:none}
+.user-tab{display:inline-flex;gap:2px;align-items:center;flex:none}
+button,input,select{
+  font:inherit;color:#111;background:#ececf1;border:1px solid #6e6e78;border-radius:8px;
+  padding:6px 10px;cursor:pointer
+}
+button:hover{border-color:#c8c8d0}
+button:active{opacity:.82}
+button.on{background:#3a3a3d;color:#fff}
+button.tiny{padding:6px 8px}
+input[type=search],input[type=range]{cursor:auto}
+.stage{flex:1;min-height:0;position:relative}
+.page{display:none;height:100%;flex-direction:column}
+.page.show{display:flex}
+.tool{display:flex;gap:8px;align-items:center;flex-wrap:wrap;background:var(--bar);padding:8px;border-bottom:1px solid var(--border)}
+.tool input[type=search]{flex:1;min-width:160px;background:#101014;color:var(--text);border-color:var(--border)}
+.grow{flex:1}
+.log{flex:1;overflow:auto;padding:4px 2px 12px}
+.row{
+  margin:6px;padding:8px;border-radius:6px;border-left:3px solid transparent;
+  display:flex;flex-wrap:wrap;gap:6px;align-items:center
+}
+.row.twitch{background:rgba(145,70,255,.13);border-left-color:#9370db}
+.row.youtube{background:#1a1a1a;border-left-color:#e53935}
+.app.light-rows .row.twitch,
+.app.light-rows .row.twitch .msg,
+.app.light-rows .row.twitch .name{color:#1a1a1a}
+.app.light-rows .row.twitch .time{color:#4a4a4a}
+.time{color:var(--muted);font-size:12px}
+.icon{width:18px;height:18px;border-radius:3px;object-fit:cover;background:#444}
+.tag{font-size:11px;font-weight:700;letter-spacing:.03em;color:#bf94ff}
+.name{
+  background:transparent;color:inherit;border:2px solid #7a7a86;border-radius:6px;
+  padding:1px 6px;font-weight:700
+}
+.msg{color:#efeff1}
+.emoji{width:22px;height:22px;vertical-align:-6px;object-fit:contain}
+.emoji.hit{outline:2px solid orange;border-radius:4px}
+.name .emoji{width:16px;height:16px;vertical-align:-3px}
+.app.light-rows .row.youtube .msg,
+.app.light-rows .row.youtube .name,
+.app.light-rows .row.youtube .time{color:#efeff1}
+mark{background:orange;color:#111;border-radius:2px}
+.panel{position:absolute;inset:0;display:none;flex-direction:column;background:var(--window);z-index:4}
+.panel.show{display:flex}
+.panel h2{margin:0;font-size:15px}
+.note{padding:18px 20px;color:var(--muted)}
+.note strong{color:var(--text)}
+.browser{margin:0 16px 16px;border:1px solid var(--border);border-radius:12px;overflow:hidden;background:#101014;flex:1}
+.browser header{background:#202028;color:var(--muted);padding:8px 12px;font-size:12px}
+.browser .body{padding:28px}
+.words{flex:1;position:relative;overflow:hidden;min-height:0;touch-action:none}
+.words.grabbing,.words.grabbing *{cursor:move}
+.cloud{position:absolute;inset:0}
+.slot{position:absolute}
+.cards{position:absolute;bottom:100%;left:50%;transform:translateX(-50%);margin-bottom:4px;display:flex;flex-direction:column;gap:4px;align-items:center;z-index:4}
+.cards.below{bottom:auto;top:100%;margin-bottom:0;margin-top:4px}
+.card{
+  display:flex;gap:4px;align-items:flex-start;max-width:240px;background:#121622;color:#efeff1;
+  border:1px solid #3a4454;border-radius:8px;padding:4px
+}
+.card.small{max-width:180px;font-size:12px}
+.card .line{background:transparent;color:#efeff1;border:0;text-align:left;padding:2px 4px;border-radius:6px}
+.card .x{background:transparent;color:#efeff1;border:0;padding:0 4px}
+.bubble{
+  border-radius:50%;display:flex;align-items:center;justify-content:center;text-align:center;
+  font-weight:750;line-height:1.05;padding:4px;border:2px solid rgba(8,12,24,.55);color:#0b1020;
+  box-sizing:border-box
+}
+.bubble.on{box-shadow:0 0 0 3px #7aa2ff}
+.bubble.lit{box-shadow:0 0 0 3px #f5c14a}
+.bubble small{display:block;font-weight:650;font-size:11px}
+.lines{height:200px;border-top:1px solid var(--border);display:flex;flex-direction:column;background:var(--window)}
+.lines h3{margin:0;padding:8px 10px 0;font-size:13px}
+.menu{
+  position:fixed;z-index:20;display:none;min-width:190px;padding:4px;
+  background:#121622;border:1px solid var(--border);border-radius:8px
+}
+.menu button{display:block;width:100%;text-align:left;background:transparent;color:#efeff1;border:0}
+.menu button:hover{background:#2a3144}
+.status{padding:6px 12px;background:var(--bar);color:var(--muted);border-top:1px solid var(--border);font-size:12px}
+.caption{margin:12px 0 0;color:#b8b8c0;min-height:3.2em}
+.lessons{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin-top:18px}
+.lessons article{background:#12141b;border:1px solid #2a2e38;border-radius:12px;padding:12px 14px}
+.lessons h2{margin:0 0 6px;font-size:15px}
+.lessons p{margin:0;color:#b8b8c0}
+.check{display:flex;gap:6px;align-items:center;color:var(--muted)}
+.swatches{display:flex;flex-wrap:wrap;gap:8px;padding:16px}
+.swatch{min-width:92px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>DuoChat 1.0</h1>
+  <p class="lead">DuoChat 1.0 is a local window for reading Twitch and YouTube live chat together. You still type in your chat client. This page uses two practice logs: a purple Twitch pizza room, and a YouTube potato argument. Click through it the same way you click the app.</p>
+  <div class="app" id="app">
+    <div class="chrome">
+      <div class="brand">DuoChat 1.0 <button id="setup" type="button">Setup</button></div>
+      <div class="tabs" id="tabs">
+        <button type="button" data-tab="all">All</button>
+        <button type="button" data-tab="twitch">Twitch</button>
+        <button type="button" data-tab="youtube">YouTube</button>
+        <button type="button" data-tab="twitch-chat">Twitch Chat</button>
+        <button type="button" data-tab="youtube-chat">YouTube Chat</button>
+        <button type="button" data-tab="copied">Copied</button>
+        <button type="button" data-tab="words">Words</button>
+        <span id="userTabs"></span>
+        <span id="logTab"></span>
+      </div>
+    </div>
+    <div class="stage">
+      <section class="page" data-page="log">
+        <div class="tool">
+          <input id="search" type="search" placeholder="Find in this log" aria-label="Find in this log"/>
+          <button type="button" id="prev">Previous</button>
+          <button type="button" id="next">Next</button>
+        </div>
+        <div class="log" id="log"></div>
+        <div class="panel" id="userPanel">
+          <div class="tool">
+            <h2 id="userTitle">Chat</h2>
+            <input id="userSearch" type="search" placeholder="Find in these lines" aria-label="Find in these lines"/>
+            <button type="button" id="userPrev">Previous</button>
+            <button type="button" id="userNext">Next</button>
+            <button type="button" id="closeUser">Close</button>
+          </div>
+          <div class="log" id="userLog"></div>
+        </div>
+      </section>
+      <section class="page" data-page="live">
+        <div class="note" id="liveNote"></div>
+        <div class="browser">
+          <header id="liveUrl"></header>
+          <div class="body" id="liveBody"></div>
+        </div>
+      </section>
+      <section class="page" data-page="copied">
+        <div class="tool">
+          <strong>Scratch pad</strong>
+          <span class="grow"></span>
+          <button type="button" id="copyAll">Copy all</button>
+        </div>
+        <div class="log" id="copiedLog"></div>
+      </section>
+      <section class="page" data-page="words">
+        <div class="tool">
+          <button type="button" data-scope="all">All</button>
+          <button type="button" data-scope="twitch">Twitch</button>
+          <button type="button" data-scope="youtube">YouTube</button>
+          <span>How many</span>
+          <input id="limit" type="range" min="10" max="80" value="40" aria-label="How many words"/>
+          <label class="check"><input id="common" type="checkbox" checked/> Common words</label>
+          <label class="check"><input id="messages" type="checkbox" checked/> Messages</label>
+          <span id="wordStatus"></span>
+        </div>
+        <div class="words" id="bubbles"></div>
+        <div class="lines">
+          <h3 id="wordTitle">Click a word</h3>
+          <div class="log" id="wordLines"></div>
+        </div>
+      </section>
+      <section class="page" data-page="log-viewer">
+        <div class="tool">
+          <div>
+            <strong id="logViewerTitle">LogViewer</strong>
+            <div>Saved log. This is not live chat.</div>
+          </div>
+        </div>
+        <div class="log" id="savedLog"></div>
+      </section>
+      <section class="page" data-page="setup">
+        <div class="note"><strong>Setup</strong> remembers the Twitch channel, the YouTube video, and the window size. The color buttons change the window. Chat rows keep their own colors.</div>
+        <div class="note">
+          <strong>Daily logs</strong> start on. New lines go to Documents\DuoChat\Logs. Uncheck this to keep chat only in the window. Files already saved stay on disk.
+          <label class="check" style="margin-top:8px"><input id="saveLogs" type="checkbox" checked> Save daily logs</label>
+          <div id="savedDays" style="margin:8px 0"></div>
+          <button id="openLog" type="button">Open</button>
+        </div>
+        <div class="swatches" id="swatches"></div>
+      </section>
+    </div>
+    <div class="status" id="status">Practice logs loaded.</div>
+  </div>
+  <p class="caption" id="caption"></p>
+  <div class="lessons">
+    <article>
+      <h2>Tabs</h2>
+      <p>All mixes both rooms by the clock. Twitch and YouTube each keep one room. Twitch Chat and YouTube Chat are the hidden live pages the app reads. They are not a second copy of the log.</p>
+    </article>
+    <article>
+      <h2>A name</h2>
+      <p>Right-click Won_Won_99 on “IT TASTES LIKE SPACE AND PEPPERONI”. Chat lists only that nickname. Chat Commonalities lists lines that share a useful word. Words opens a Won_Won_99 Words tab. Copy puts that line on the scratch pad.</p>
+    </article>
+    <article>
+      <h2>Words</h2>
+      <p>Right-click taters to pin “what is taters?!”. Click that note. A smaller note appears on tater, and on the slow-mode line, because that line contains tater. A message already on screen is not added again. × on a branch closes that branch. × on the first note, another right-click, or Esc closes the tree.</p>
+    </article>
+    <article>
+      <h2>One person</h2>
+      <p>The Smeagol_Raw_And_Wriggling Words tab can be closed with ×. The main Words tab stays. Turn Common words off on a nickname tab to count every word that person used, including short ones such as “the”.</p>
+    </article>
+    <article>
+      <h2>Saved logs</h2>
+      <p>Setup starts with Save daily logs checked. Open the practice day. The tab reads LogViewer and the date, so it is obvious those rows are a saved file and not the live rooms. × closes that tab.</p>
+    </article>
+  </div>
+</div>
+<div class="menu" id="menu"></div>
+<script>
+const STOP = new Set("a about above after again against all almost already also although always am an and another any are aren't as at be because been before being below between both but by can can't cannot could couldn't did didn't do does doesn't doing don't down during each either else enough even ever every few for from further had hadn't has hasn't have haven't having he he'd he'll he's her here here's hers herself him himself his how how's however i i'd i'll i'm i've if in into is isn't it it's its itself just less let's little many me more most much mustn't my myself nearly neither never no nor not now of off often on once only or other others ought our ours ourselves out over own quite rather really same shan't she she'd she'll she's should shouldn't since so some sometimes still such than that that's the their theirs them themselves then there there's these they they'd they'll they're they've this those though through to too under unless until up usually very was wasn't we we'd we'll we're we've were weren't what what's when when's where where's whether which while who who's whom why why's with won't would wouldn't yet you you'd you'll you're you've your yours yourself yourselves".split(" "));
+const THEMES = {
+  Dark:["#0E0E10","#18181B","#EFEFF1","#AAAAAA","#2F2F35"],
+  Monochrome:["#1C1C1C","#2A2A2A","#E6E6E6","#A0A0A0","#4A4A4A"],
+  White:["#F7F7F8","#FFFFFF","#1A1A1A","#5C5C5C","#D0D0D4"],
+  Pink:["#F8E8EF","#F3D0E0","#3A2030","#7A5060","#E2B0C4"],
+  Twitch:["#1A1028","#2D1B4E","#EFEFF1","#C4B6DC","#5A3E8A"],
+  YouTube:["#140A0A","#3D1010","#F4F4F4","#D0A0A0","#8A3030"],
+  Aurora:["#0B1020","#151B2E","#E8EEFC","#9AA6C2","#2A3554"],
+  Heat:["#140C08","#2A1810","#F4F0EC","#C4A898","#5C3828"],
+  Ink:["#12161C","#1E242E","#E6EAF0","#9AA6B4","#3A4454"]
+};
+const raw = `
+T|22:17:35|DONATION||$50.00 from WeasleyTwins_TV
+T|22:17:36|TTS||oi ronniekins we intercepted the owl delivery. peruvian instant darkness powder glaze on the crust. enjoy the void mate. pineapple rules malfoy drools kappa
+T|22:17:38||Won_Won_99|wait
+T|22:17:39||Won_Won_99|what void
+T|22:17:41||Won_Won_99|why is the slice glowing purple WutFace
+T|22:17:42||Won_Won_99|the whole pizza is purple now twitchGlitch
+T|22:17:44||PureBlood_Prince|LUL
+T|22:17:45||PureBlood_Prince|your own brothers just killed your stream
+T|22:17:47||PureBlood_Prince|outplayed by bloodline LULW
+T|22:17:49||PureBlood_Prince|this is why gryffindor is broke
+T|22:17:51||gryff_hater_draco|pineapple is a crime
+T|22:17:52||slytherin_simp|malfoy sweep
+T|22:17:53||Won_Won_99|IT TASTES LIKE SPACE AND PEPPERONI
+T|22:17:55|MOD|Granger_Books|ron put the slice down
+T|22:17:56|MOD|Granger_Books|that crust is radioactive
+T|22:17:58|MOD|Granger_Books|the artifacting is getting worse NotLikeThis
+T|22:18:01||Potter_Official|died in apex
+T|22:18:02||Potter_Official|why is the table floating
+T|22:18:04||Potter_Official|PogChamp
+T|22:18:06||Won_Won_99|SWALLOWING IT FOR GRYFFINDOR
+T|22:18:07||Won_Won_99|MALFOY WILL NOT WIN THIS SwiftRage
+T|22:18:09||Won_Won_99|lunar dust spicy pepperoni i am ascended
+T|22:18:11||PureBlood_Prince|he is actually eating it
+T|22:18:12||PureBlood_Prince|clip this
+T|22:18:13||PureBlood_Prince|malfoy manor discord is gonna implode ResidentSleeper
+T|22:18:15|MOD|Granger_Books|@WeasleyTwins_TV reporting for unconsented magical experimentation
+T|22:18:17|MOD|Granger_Books|ron your ears are smoking
+T|22:18:18|MOD|Granger_Books|stop streaming and get to the hospital wing 😡
+T|22:18:20||WeasleyTwins_TV|worth the 50
+T|22:18:21||WeasleyTwins_TV|spam POGGERS for the void pizza king
+T|22:18:22||Gryffindor_Fanboy_Colin|POGGERS
+T|22:18:23||Gryffindor_Fanboy_Colin|POGGERS
+T|22:18:23||Badger_Ernie|POGGERS 🍕
+T|22:18:24||Loony_Lovegood_99|happy galaxy pizza POGGERS 🌌
+T|22:18:25||random_hufflepuff|POGGERS
+T|22:18:25||cormac_mclaggen|pineapple sucks
+T|22:18:26||cormac_mclaggen|also ron is mid
+T|22:18:27||Gryffindor_Fanboy_Colin|POGGERS
+T|22:18:28||slytherin_simp|LUL he really ate it
+T|22:18:29||Won_Won_99|ears are hot but pizza is hotter
+T|22:18:30||Won_Won_99|for gryffindor twitchLit
+T|22:18:33||PureBlood_Prince|charging back tier 3
+T|22:18:34||PureBlood_Prince|health hazard stream FailFish
+T|22:18:36||PureBlood_Prince|someone get this man a healer
+T|22:18:39|MOD|Granger_Books|chat stop spamming and tell him to stop eating the void
+T|22:18:41|MOD|Granger_Books|i cannot see the screen anymore
+T|22:18:43|OFFLINE||Connection Lost via Malfunctioning Pizza Crust
+Y|22:17:10|LIVE|The_Ring_Bearer_Official|LIVE
+Y|22:17:15|MOD|Mithrandir_Grey_Hat|slow mode on. next person to say yam or tater gets a 10 minute timeout. i mean it.
+Y|22:17:22||Smeagol_Raw_And_Wriggling|potatoes?! 👀
+Y|22:17:23||Smeagol_Raw_And_Wriggling|what is taters precious??
+Y|22:17:24||Smeagol_Raw_And_Wriggling|what is taters?! 💀
+Y|22:17:26||Smeagol_Raw_And_Wriggling|cruel hobbitses spoils the nice fish!
+Y|22:17:27||Smeagol_Raw_And_Wriggling|roasts it boashes it smashes it! 😡😡
+Y|22:17:29||Smeagol_Raw_And_Wriggling|we hates the nasty stinky yellow rootses!! 😭
+Y|22:17:32||Sam_Gardener_99|look who got into the chat
+Y|22:17:33||Sam_Gardener_99|you wouldn’t know a good stew if you drowned in the cauldron 😂😂
+Y|22:17:35||Sam_Gardener_99|potatoes are perfect boiled mashed or stewed
+Y|22:17:37||Sam_Gardener_99|and chips. chips are a gift 🔥🔥
+Y|22:17:39||Pip_Second_Breakfast|@Smeagol_Raw_And_Wriggling have you tried wedges though
+Y|22:17:40||Pip_Second_Breakfast|sour cream and chives
+Y|22:17:41||Pip_Second_Breakfast|life changing 😍
+Y|22:17:43||Pip_Second_Breakfast|second breakfast potatoes when 🙏
+Y|22:17:45||Smeagol_Raw_And_Wriggling|nooo no chiveses!! 😤
+Y|22:17:46||Smeagol_Raw_And_Wriggling|ruins the crunch!
+Y|22:17:48||Smeagol_Raw_And_Wriggling|give us raw fish juicy sweet fish! 🐟
+Y|22:17:49||Smeagol_Raw_And_Wriggling|smeagol bites the head off! gollum gollum! 😂
+Y|22:17:52||Captain_Gondor_Boromir|the creature speaks truth
+Y|22:17:53||Captain_Gondor_Boromir|raw fish is pure
+Y|22:17:55||Captain_Gondor_Boromir|boiling is dark sorcery 👎
+Y|22:17:56||Captain_Gondor_Boromir|we have fought the shadow for generations only to fall to a root 💀
+Y|22:17:59||Gimli_Axeman_Official|did a gondorian just side with the fish-biter
+Y|22:18:00||Gimli_Axeman_Official|over an honest underground root 😂
+Y|22:18:02||Gimli_Axeman_Official|that is two for you boromir
+Y|22:18:03||Gimli_Axeman_Official|potatoes are the only food that matters 🔥💯
+Y|22:18:06||Greenleaf_Legolas007|if the creature rejects the tater then the tater is base
+Y|22:18:07||Greenleaf_Legolas007|the elven yam remains superior in every way 🏹✨
+Y|22:18:09||Greenleaf_Legolas007|elegance over dirt
+Y|22:18:11|MOD|Mithrandir_Grey_Hat|@Greenleaf_Legolas007 timeout
+Y|22:18:12|MOD|Mithrandir_Grey_Hat|10 minutes for the y-word
+Y|22:18:13|MOD|Mithrandir_Grey_Hat|i warned you ⚠️
+Y|22:18:15||Smeagol_Raw_And_Wriggling|yes!! timeout the pretty elf-thing! 😂
+Y|22:18:16||Smeagol_Raw_And_Wriggling|he eats leaves!!
+Y|22:18:18||Smeagol_Raw_And_Wriggling|we wants the preciousss
+Y|22:18:19||Smeagol_Raw_And_Wriggling|we wants a prime sub give it to usss 🙏
+Y|22:18:22||Merry_Brandybuck|legolas got timed out for yam 😂
+Y|22:18:23||Merry_Brandybuck|🔥🔥🔥
+Y|22:18:24||random_elf|yams are not potatoes
+Y|22:18:25||random_elf|different family 👀
+Y|22:18:26||Gimli_Axeman_Official|they are both roots
+Y|22:18:27||Gimli_Axeman_Official|therefore potato
+Y|22:18:28||Gimli_Axeman_Official|argument over 💯
+Y|22:18:29||Pip_Second_Breakfast|yam timeout 😂😂
+Y|22:18:30||Sam_Gardener_99|both are good if you cook them right
+Y|22:18:31||Sam_Gardener_99|stop fighting and eat 🥔
+Y|22:18:32||hobbit_fan_42|🔥 for potatoes
+Y|22:18:33||hobbit_fan_42|🔥🔥
+Y|22:18:34||Gimli_Axeman_Official|yams are just fancy potatoes
+Y|22:18:35||Gimli_Axeman_Official|deal with it 😂
+Y|22:18:36|MOD|Mithrandir_Grey_Hat|chat if one more person says it i am locking the stream
+Y|22:18:39||Aragorn_Ranger90|frodo close the laptop
+Y|22:18:40||Aragorn_Ranger90|red light is flashing on the dashboard 🚨
+Y|22:18:42||Aragorn_Ranger90|screeching outside the tent
+Y|22:18:43||Aragorn_Ranger90|sounds like dial-up and a ringwraith 💀
+Y|22:18:46||Smeagol_Raw_And_Wriggling|bagginsses leaked the ip addresss!!
+Y|22:18:47||Smeagol_Raw_And_Wriggling|the nine riders are subscribing right now! 😂
+Y|22:18:49||Smeagol_Raw_And_Wriggling|we is live we is live!! 🔥🔥
+Y|22:18:52|OFFLINE||Connection Lost via Nazgûl DDoS Attack
+`.trim().split("\n").map((line,id)=>{
+  const [side,time,badge,user,text] = line.split("|");
+  return {id, time, platform:side==="T"?"twitch":"youtube", badge, user, text};
+});
+const messages = raw.sort((a,b)=>a.time.localeCompare(b.time)||a.platform.localeCompare(b.platform)||a.id-b.id);
+const captions = {
+  all:"All mixes both practice logs by the clock. YouTube starts at 22:17:10. The purple pizza lines join at 22:17:35. Emote names and emoji are drawn as ordinary Google emoji pictures. A donation, a spoken line, a mod tag, and “stream offline” are ordinary rows.",
+  twitch:"Twitch keeps the purple rows. This room is the void pizza.",
+  youtube:"YouTube keeps the dark rows with the red edge. This room is the potato argument.",
+  "twitch-chat":"Twitch Chat is the hidden live page. In the app it stays open while you read the log.",
+  "youtube-chat":"YouTube Chat is the other hidden live page. DuoChat reads it and files the lines.",
+  copied:"Copied is a scratch pad for a report. Delete works only here. The log itself is left alone. Two lines are already here: Granger’s crust, and Mithrandir’s timeout.",
+  words:"Words counts the open view. Common words starts on, so ordinary words stay out. Click a bubble for its lines. Right-click a bubble to pin the newest line. The wheel zooms toward the pointer. Hold the middle mouse button to drag the cloud.",
+  setup:"Setup stores the rooms and the background. Daily logs start on. Open a saved day to read it as LogViewer plus the date. White and Pink are the backgrounds that darken the purple Twitch rows. YouTube rows stay dark.",
+  "log-viewer":"LogViewer plus the date is a saved file. All, Twitch, and YouTube stay live. This practice day is 2026-11-07."
+};
+let tab = "all";
+let filter = "all";
+let scope = "all";
+let wordUser = "";
+let userTabs = ["Smeagol_Raw_And_Wriggling"];
+let theme = "Dark";
+let savedDay = "";
+const practiceDay = "2026-11-07";
+let notes = [];
+let nextNote = 1;
+let selectedWord = "";
+let listedNote = 0;
+const copied = [messages.find(m=>m.text.includes("radioactive")), messages.find(m=>m.text.includes("@Greenleaf_Legolas007 timeout"))];
+let query = "";
+let hit = -1;
+let userQuery = "";
+let userHit = -1;
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+function mark(s,q){
+  const safe = esc(s);
+  if (!q) return safe;
+  const re = new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g,"\\$&"),"ig");
+  return safe.replace(re, m=>`<mark>${m}</mark>`);
+}
+const EMOTES = {
+  wutface:"🤨", twitchglitch:"🌀", lul:"😂", lulw:"🤣", notlikethis:"😬",
+  pogchamp:"😮", swiftrage:"😡", residentsleeper:"😴", twitchlit:"🔥",
+  failfish:"🐟", kappa:"😏", poggers:"🤩"
+};
+function notoUrl(emoji){
+  const codes = [];
+  for (const ch of emoji){
+    const cp = ch.codePointAt(0);
+    if (cp === 0xFE0F) continue;
+    codes.push(cp.toString(16));
+  }
+  return `https://fonts.gstatic.com/s/e/notoemoji/latest/${codes.join("_")}/512.png`;
+}
+function emojiImg(emoji, title, hit){
+  return `<img class="emoji${hit?" hit":""}" alt="${esc(title||emoji)}" title="${esc(title||emoji)}" src="${notoUrl(emoji)}" onerror="this.replaceWith(document.createTextNode(this.alt))">`;
+}
+function rich(text, q){
+  const query = (q||"").trim();
+  const re = /\p{Extended_Pictographic}(?:\uFE0F|\u200D\p{Extended_Pictographic})*|[A-Za-z0-9']+|[^A-Za-z0-9'\p{Extended_Pictographic}]+/gu;
+  let html = "";
+  let match;
+  while ((match = re.exec(text||""))){
+    const part = match[0];
+    const key = part.toLowerCase();
+    if (EMOTES[key]) html += emojiImg(EMOTES[key], part, query && key.includes(query.toLowerCase()));
+    else if (/^\p{Extended_Pictographic}/u.test(part)) html += emojiImg(part, part, query && part.includes(query));
+    else html += mark(part, query);
+  }
+  return html;
+}
+function icon(m){
+  const src = m.platform==="twitch" ? "twitchIcon.png" : "youtubeIcon.png";
+  return `<img class="icon" alt="" src="${src}"/>`;
+}
+function row(m, extra="", q=""){
+  const named = m.user && !["DONATION","TTS","OFFLINE","LIVE"].includes(m.badge);
+  const badgeLabel = {DONATION:"💰 DONATION", LIVE:"🔴 LIVE", OFFLINE:"🔴 OFFLINE", TTS:"TTS"};
+  const who = named
+    ? `${m.badge==="MOD"?'<span class="tag">MOD</span>':""}<button class="name" type="button" data-id="${m.id}">${mark(m.user, q)}</button>`
+    : `<span class="name">${rich(badgeLabel[m.badge]||m.badge||m.user||"")}</span>`;
+  const body = m.badge==="LIVE" ? esc(m.user) : rich(m.text, q);
+  return `<article class="row ${m.platform}" data-id="${m.id}">${icon(m)}<span class="time">${m.time}</span>${who}<span class="msg">${body}</span>${extra}</article>`;
+}
+function logSource(){
+  if (filter==="twitch") return messages.filter(m=>m.platform==="twitch");
+  if (filter==="youtube") return messages.filter(m=>m.platform==="youtube");
+  return messages;
+}
+function wordPool(){
+  return messages.filter(m=>{
+    if (scope!=="all" && m.platform!==scope) return false;
+    if (wordUser && m.user.toLowerCase()!==wordUser.toLowerCase()) return false;
+    return true;
+  });
+}
+function tokens(text, hide){
+  const out = [];
+  const re = /[0-9A-Za-z'\u2019]+/g;
+  let match;
+  while ((match = re.exec(text||""))){
+    const rawWord = match[0].replace(/\u2019/g,"'").replace(/^'+|'+$/g,"");
+    const key = rawWord.toLowerCase();
+    if (!key) continue;
+    if (hide && (key.length<4 || STOP.has(key))) continue;
+    out.push({key, raw:rawWord});
+  }
+  return out;
+}
+function useful(text){
+  const found = [];
+  tokens(text, true).forEach(({key})=>{
+    if (!found.some(w=>w.toLowerCase()===key)) found.push(key);
+  });
+  return found;
+}
+function wordsMatch(a,b){
+  return a.toLowerCase().includes(b.toLowerCase()) || b.toLowerCase().includes(a.toLowerCase());
+}
+function setStatus(text){ $("status").textContent = text; }
+function paintLog(){
+  $("log").innerHTML = logSource().map(m=>row(m, "", query)).join("");
+  hit = -1;
+}
+function paintCopied(){
+  $("copiedLog").innerHTML = copied.map((m,i)=>row(m, `<button type="button" data-del="${i}">Delete</button>`)).join("")
+    || `<div class="note">Nothing copied yet.</div>`;
+}
+function bubbleFill(t){
+  const name = theme.toLowerCase();
+  if (name==="aurora") return hsl(195+t*150, .75, (58-t*12)/100);
+  if (name==="heat"){
+    const r = Math.round(255*Math.min(1,t*1.4));
+    const g = Math.round(255*Math.max(0,1-Math.abs(t-0.45)*2));
+    const b = Math.round(255*Math.max(0,1-t*1.3));
+    return `rgb(${r},${g},${b})`;
+  }
+  if (name==="ink"||name==="monochrome"){
+    const v = Math.round(70+t*160);
+    return `rgb(${v},${Math.min(255,v+8)},${Math.min(255,v+18)})`;
+  }
+  if (name==="white") return "#6E6AF5";
+  if (name==="pink") return "#E89AB8";
+  if (name==="youtube") return "#FF8A80";
+  return "#C4B5FD";
+}
+function hsl(h,s,l){
+  h=((h%360)+360)%360;
+  const c=(1-Math.abs(2*l-1))*s, x=c*(1-Math.abs((h/60)%2-1)), m=l-c/2;
+  const p = h<60?[c,x,0]:h<120?[x,c,0]:h<180?[0,c,x]:h<240?[0,x,c]:h<300?[x,0,c]:[c,0,x];
+  return `rgb(${p.map(v=>Math.round((v+m)*255)).join(",")})`;
+}
+function labelColor(fill){
+  let r,g,b;
+  if (fill.startsWith("#")){
+    const n = parseInt(fill.slice(1),16);
+    r=(n>>16)&255; g=(n>>8)&255; b=n&255;
+  } else {
+    [r,g,b] = fill.match(/\d+/g).map(Number);
+  }
+  return 0.299*r+0.587*g+0.114*b>=150 ? "#0B1020" : "#F7F8FC";
+}
+function hypot(x,y){ return Math.sqrt(x*x+y*y); }
+function circleHits(x1,y1,r1,x2,y2,r2){
+  const dx=x2-x1, dy=y2-y1, distance=hypot(dx,dy);
+  if (distance===0 || distance>r1+r2+1e-8 || distance<Math.abs(r1-r2)-1e-8) return [];
+  const along=(r1*r1-r2*r2+distance*distance)/(2*distance);
+  const rise=r1*r1-along*along;
+  if (rise<-1e-8) return [];
+  const height=Math.sqrt(Math.max(0,rise));
+  const midX=x1+along*dx/distance, midY=y1+along*dy/distance;
+  const ox=-dy/distance*height, oy=dx/distance*height;
+  const points=[{x:midX+ox,y:midY+oy}];
+  if (height>1e-8) points.push({x:midX-ox,y:midY-oy});
+  return points;
+}
+function overlaps(point, radius, circles){
+  return circles.some(circle=>hypot(point.x-circle.x,point.y-circle.y)+1e-7<circle.r+radius);
+}
+function packCircles(items){
+  if (!items.length) return [];
+  const circles=[{x:0,y:0,r:1,item:items[0],rank:1}];
+  if (items.length>1) circles.push({x:3,y:0,r:2,item:items[1],rank:2});
+  for (let i=2;i<items.length;i++){
+    const radius=i+1;
+    const last=circles[circles.length-1];
+    const prev=circles[circles.length-2];
+    const vx=last.x-prev.x, vy=last.y-prev.y;
+    const choose=prefer=>{
+      const candidates=[];
+      for (let j=0;j<circles.length-1;j++){
+        for (const point of circleHits(last.x,last.y,last.r+radius,circles[j].x,circles[j].y,circles[j].r+radius)){
+          if (overlaps(point,radius,circles)) continue;
+          const wx=point.x-last.x, wy=point.y-last.y;
+          if (prefer && vx*wy-vy*wx<=0) continue;
+          let turn=Math.atan2(wy,wx)-Math.atan2(vy,vx);
+          while (turn<=-Math.PI) turn+=Math.PI*2;
+          while (turn>Math.PI) turn-=Math.PI*2;
+          candidates.push({turn, distance:hypot(point.x,point.y), point});
+        }
+      }
+      candidates.sort((a,b)=>a.turn-b.turn||a.distance-b.distance);
+      return candidates[0]?.point||null;
+    };
+    let placed=choose(true)||choose(false);
+    if (!placed){
+      placed={x:last.x+last.r+radius,y:last.y};
+      for (let step=0;step<36;step++){
+        const angle=step*Math.PI/18;
+        const point={x:last.x+Math.cos(angle)*(last.r+radius), y:last.y+Math.sin(angle)*(last.r+radius)};
+        if (!overlaps(point,radius,circles)){ placed=point; break; }
+      }
+    }
+    circles.push({x:placed.x,y:placed.y,r:radius,item:items[i],rank:radius});
+  }
+  return circles;
+}
+let camX=0, camY=0, camScale=1, fitScale=1, viewCustom=false;
+let wordDrag=null;
+function cloudFit(circles){
+  const host=$("bubbles");
+  const width=host.clientWidth, height=host.clientHeight;
+  if (width<20 || height<20) return null;
+  let minX=Infinity, minY=Infinity, maxX=-Infinity, maxY=-Infinity;
+  circles.forEach(circle=>{
+    minX=Math.min(minX, circle.x-circle.r);
+    minY=Math.min(minY, circle.y-circle.r);
+    maxX=Math.max(maxX, circle.x+circle.r);
+    maxY=Math.max(maxY, circle.y+circle.r);
+  });
+  const pad=16;
+  const scale=Math.min((width-pad*2)/Math.max(1,maxX-minX), (height-pad*2)/Math.max(1,maxY-minY));
+  return {width, height, minX, minY, maxX, maxY, scale};
+}
+function applyCamera(){
+  const circles=window._packed||[];
+  document.querySelectorAll("#bubbles .slot").forEach(slot=>{
+    const circle=circles[+slot.dataset.i];
+    if (!circle) return;
+    const size=circle.r*2*camScale;
+    slot.style.left=(camX+(circle.x-circle.r)*camScale)+"px";
+    slot.style.top=(camY+(circle.y-circle.r)*camScale)+"px";
+    slot.style.width=slot.style.height=size+"px";
+    const longest=Math.max(circle.item.label.length, String(circle.item.n).length);
+    const bubble=slot.querySelector(".bubble");
+    bubble.style.fontSize=Math.min(size*0.24, size*1.4/Math.max(1,longest))+"px";
+    const label=slot.querySelector(".label");
+    if (label) label.style.visibility=size>=36?"visible":"hidden";
+  });
+  const host=$("bubbles");
+  const bounds=host.getBoundingClientRect();
+  host.querySelectorAll(".cards").forEach(cards=>{
+    if (!cards.childElementCount) return;
+    cards.classList.remove("below");
+    cards.style.transform="";
+    let box=cards.getBoundingClientRect();
+    if (box.top<bounds.top+4){ cards.classList.add("below"); box=cards.getBoundingClientRect(); }
+    let shift=0;
+    if (box.left<bounds.left+4) shift=bounds.left+4-box.left;
+    if (box.right>bounds.right-4) shift=bounds.right-4-box.right;
+    if (shift) cards.style.transform=`translateX(calc(-50% + ${shift}px))`;
+  });
+}
+function placeCloud(circles){
+  const host=$("bubbles");
+  if (!circles.length) return;
+  const fit=cloudFit(circles);
+  if (!fit){
+    if (!host.dataset.waiting){
+      host.dataset.waiting="1";
+      requestAnimationFrame(()=>{ delete host.dataset.waiting; placeCloud(circles); });
+    }
+    return;
+  }
+  fitScale=fit.scale;
+  if (!viewCustom){
+    camScale=fit.scale;
+    camX=(fit.width-(fit.minX+fit.maxX)*camScale)/2;
+    camY=(fit.height-(fit.minY+fit.maxY)*camScale)/2;
+  }
+  const span=Math.max(1, circles.length-1);
+  const showNotes=$("messages").checked;
+  host.innerHTML=`<div class="cloud">${circles.map((circle,index)=>{
+    const fill=bubbleFill(circles.length===1?1:(circle.rank-1)/span);
+    const key=circle.item.label.toLowerCase();
+    const mine=notes.filter(note=>note.key===key);
+    const cards=showNotes?mine.map(note=>{
+      const msg=messages.find(item=>item.id===note.messageId);
+      return `<div class="card ${note.small?"small":""}" title="${esc(msg.time+" "+msg.user+": "+msg.text)}"><button class="line" type="button" data-note="${note.id}">${rich(msg.text)}</button><button class="x" type="button" data-x="${note.id}" aria-label="Close">×</button></div>`;
+    }).join(""):"";
+    const cls=`${selectedWord===key?" on":""}${notes.some(note=>note.key===key)?" lit":""}`;
+    return `<div class="slot" data-i="${index}" style="z-index:${mine.length?5:1}"><div class="cards">${cards}</div><button class="bubble${cls}" type="button" data-word="${esc(key)}" title="${esc(circle.item.label)} · ${circle.item.n}" style="width:100%;height:100%;background:${fill};color:${labelColor(fill)}"><span class="label">${esc(circle.item.label)}<br><small>${circle.item.n}</small></span></button></div>`;
+  }).join("")}</div>`;
+  applyCamera();
+}
+function paintWords(reset){
+  if (reset){ notes=[]; listedNote=0; selectedWord=""; viewCustom=false; }
+  const hide = $("common").checked;
+  const counts = new Map();
+  wordPool().forEach(m=>{
+    tokens(m.text, hide).forEach(({key,raw})=>{
+      const rec = counts.get(key)||{n:0,label:raw,best:0,lines:[]};
+      rec.n++;
+      const spells = rec.label.toLowerCase()===raw.toLowerCase() ? rec.best+1 : 1;
+      if (spells>rec.best){ rec.best=spells; rec.label=raw; }
+      if (!rec.lines.includes(m)) rec.lines.push(m);
+      counts.set(key, rec);
+    });
+  });
+  const limit = +$("limit").value;
+  const ranked = [...counts.values()].sort((a,b)=>b.n-a.n||a.label.localeCompare(b.label)).slice(0,limit);
+  const rareFirst = [...ranked].sort((a,b)=>a.n-b.n||a.label.localeCompare(b.label));
+  const summary = `${wordPool().length} msgs · ${rareFirst.length} words${wordUser?" · "+wordUser:""}`;
+  $("wordStatus").textContent = summary;
+  if (tab==="words") setStatus(summary);
+  const circles = packCircles(rareFirst);
+  window._packed = circles;
+  window._bubbles = circles.map(circle=>({key:circle.item.label.toLowerCase(), lines:circle.item.lines}));
+  if (!circles.length) $("bubbles").innerHTML = `<div class="note">${hide?"No words left after common words.":"No words in this view."}</div>`;
+  else placeCloud(circles);
+  if (!notes.length && selectedWord) showWord(selectedWord);
+  else if (!notes.length){ $("wordTitle").textContent="Click a word"; $("wordLines").innerHTML=""; }
+}
+function showWord(key){
+  selectedWord = key;
+  const bubble = (window._bubbles||[]).find(b=>b.key===key);
+  const lines = bubble? bubble.lines : [];
+  $("wordTitle").textContent = `${key} · ${lines.length}`;
+  $("wordLines").innerHTML = lines.map(m=>row(m)).join("");
+  paintWordClasses();
+}
+function paintWordClasses(){
+  document.querySelectorAll(".bubble").forEach(b=>{
+    const key = b.dataset.word;
+    b.classList.toggle("on", key===selectedWord);
+    b.classList.toggle("lit", notes.some(n=>n.key===key));
+  });
+}
+function pin(key){
+  const bubble = (window._bubbles||[]).find(b=>b.key===key);
+  if (!bubble || !bubble.lines.length) return;
+  const message = bubble.lines[bubble.lines.length-1];
+  notes = [{id:nextNote++, parentId:0, key, messageId:message.id, small:false}];
+  listedNote = 0;
+  $("messages").checked = true;
+  showWord(key);
+  paintWords(false);
+  setStatus("Pinned the newest line. Click it to open related words.");
+}
+function expand(note){
+  const msg = messages.find(m=>m.id===note.messageId);
+  const seeds = useful(msg.text);
+  if (!seeds.length){ setStatus("No useful words in that line."); return; }
+  let added = 0;
+  (window._bubbles||[]).forEach(bubble=>{
+    if (bubble.key===note.key) return;
+    let shared = null;
+    for (let i=bubble.lines.length-1;i>=0;i--){
+      const words = useful(bubble.lines[i].text);
+      if (seeds.some(seed=>words.some(word=>wordsMatch(seed,word)))){ shared = bubble.lines[i]; break; }
+    }
+    if (!shared) return;
+    if (notes.some(n=>n.messageId===shared.id)) return;
+    notes.push({id:nextNote++, parentId:note.id, key:bubble.key, messageId:shared.id, small:true});
+    added++;
+  });
+  fillBranch(note);
+  paintWords(false);
+  setStatus(added?`Opened ${added} more words.`:"That branch is already open.");
+}
+function fillBranch(note){
+  const msg = messages.find(m=>m.id===note.messageId);
+  const seeds = useful(msg.text);
+  listedNote = note.id;
+  const used = [];
+  const lines = wordPool().filter(m=>{
+    const words = useful(m.text);
+    const shared = seeds.filter(seed=>words.some(word=>wordsMatch(seed,word)));
+    if (!shared.length && m.id!==note.messageId) return false;
+    shared.forEach(seed=>{ if (m.id!==note.messageId && !used.some(u=>u.toLowerCase()===seed.toLowerCase())) used.push(seed); });
+    return true;
+  });
+  $("wordTitle").textContent = used.join(" · ") || note.key;
+  $("wordLines").innerHTML = lines.map(m=>row(m)).join("");
+}
+function clearNotes(){
+  notes = [];
+  listedNote = 0;
+  paintWords(false);
+  if (selectedWord) showWord(selectedWord);
+  else { $("wordTitle").textContent="Click a word"; $("wordLines").innerHTML=""; }
+  setStatus("Closed the word notes.");
+}
+function closeBranch(id){
+  const note = notes.find(n=>n.id===id);
+  if (!note || note.parentId===0){ clearNotes(); return; }
+  const drop = new Set();
+  const walk = current=>{ drop.add(current); notes.filter(n=>n.parentId===current).forEach(n=>walk(n.id)); };
+  walk(id);
+  const parent = notes.find(n=>n.id===note.parentId);
+  notes = notes.filter(n=>!drop.has(n.id));
+  paintWords(false);
+  if (drop.has(listedNote) && parent) fillBranch(parent);
+  setStatus("Closed that branch.");
+}
+function paintUserTabs(){
+  $("userTabs").innerHTML = userTabs.map(name=>`<span class="user-tab"><button type="button" data-tab="user" data-user="${esc(name)}" class="${tab==="words"&&wordUser.toLowerCase()===name.toLowerCase()?"on":""}">${esc(name)} Words</button><button class="tiny" type="button" data-close="${esc(name)}" title="Close ${esc(name)} Words">×</button></span>`).join("");
+}
+function paintLogTab(){
+  $("logTab").innerHTML = savedDay
+    ? `<span class="user-tab"><button type="button" data-tab="log-viewer" class="${tab==="log-viewer"?"on":""}">LogViewer ${savedDay}</button><button class="tiny" type="button" data-close-log="1" title="Close LogViewer">×</button></span>`
+    : "";
+}
+function paintSavedDays(){
+  $("savedDays").innerHTML = `<button type="button" class="on" data-day="${practiceDay}">${practiceDay}</button>`;
+}
+function openSavedLog(){
+  savedDay = practiceDay;
+  $("logViewerTitle").textContent = `LogViewer ${savedDay}`;
+  $("savedLog").innerHTML = messages.map(m=>row(m,"")).join("");
+  show("log-viewer");
+  setStatus(`LogViewer ${savedDay}. ${messages.length} saved lines. This is not live chat.`);
+}
+function show(next){
+  tab = next;
+  document.querySelectorAll("#tabs > button, #setup").forEach(b=>b.classList.toggle("on", b.dataset.tab===next));
+  $("setup").classList.toggle("on", next==="setup");
+  document.querySelectorAll(".page").forEach(p=>p.classList.remove("show"));
+  $("userPanel").classList.remove("show");
+  if (next==="twitch-chat"||next==="youtube-chat"){
+    document.querySelector('[data-page="live"]').classList.add("show");
+    const yt = next==="youtube-chat";
+    $("liveUrl").textContent = yt?"youtube.com/live_chat":"twitch.tv/popout/chat";
+    $("liveBody").textContent = yt?"This page stays loaded. The lines you read are on YouTube and All.":"This page stays loaded. The lines you read are on Twitch and All.";
+    $("liveNote").innerHTML = yt?"<strong>YouTube Chat</strong> is the source page, dimmed here so it is obvious this is not the log.":"<strong>Twitch Chat</strong> is the source page, dimmed here so it is obvious this is not the log.";
+  } else if (next==="copied"){
+    document.querySelector('[data-page="copied"]').classList.add("show");
+    paintCopied();
+  } else if (next==="words"){
+    document.querySelector('[data-page="words"]').classList.add("show");
+    document.querySelector("#tabs button[data-tab='words']").classList.toggle("on", !wordUser);
+    document.querySelectorAll("[data-scope]").forEach(b=>b.classList.toggle("on", b.dataset.scope===scope));
+    paintWords(false);
+  } else if (next==="setup"){
+    document.querySelector('[data-page="setup"]').classList.add("show");
+    paintSavedDays();
+  } else if (next==="log-viewer"){
+    document.querySelector('[data-page="log-viewer"]').classList.add("show");
+  } else {
+    filter = next;
+    document.querySelector('[data-page="log"]').classList.add("show");
+    paintLog();
+    setStatus(`${logSource().length} messages`);
+  }
+  $("caption").textContent = next==="words" && wordUser
+    ? `${wordUser} Words counts only that nickname. All, Twitch, and YouTube still limit the room. × closes this tab. Words itself stays.`
+    : captions[next]||"";
+  paintUserTabs();
+  paintLogTab();
+}
+function openUserWords(name){
+  if (filter==="all"||filter==="twitch"||filter==="youtube") scope = filter;
+  const existing = userTabs.find(n=>n.toLowerCase()===name.toLowerCase());
+  if (!existing) userTabs.push(name);
+  wordUser = existing||name;
+  notes = [];
+  selectedWord = "";
+  viewCustom = false;
+  show("words");
+}
+function openMenu(x,y,id,inCopied){
+  const menu = $("menu");
+  menu.dataset.id = id;
+  menu.innerHTML = ["Chat","Chat Commonalities","Words","Copy"].map(label=>`<button type="button" data-act="${label}">${label}</button>`).join("");
+  if (inCopied) menu.innerHTML += `<button type="button" data-act="Delete">Delete</button>`;
+  menu.style.display = "block";
+  menu.style.left = Math.min(x, innerWidth-210)+"px";
+  menu.style.top = Math.min(y, innerHeight-160)+"px";
+}
+function jump(list, box, which){
+  const q = box.value.trim().toLowerCase();
+  const nodes = [...list.querySelectorAll("article")].filter(n=>{
+    const m = messages.find(item=>item.id===+n.dataset.id);
+    return q && `${m.user} ${m.text}`.toLowerCase().includes(q);
+  });
+  if (!nodes.length){ setStatus(q?"No match.":"Type a word to find."); return; }
+  if (which.n<0) which.n = which.dir<0 ? 0 : -1;
+  which.n = (which.n + which.dir + nodes.length) % nodes.length;
+  const node = nodes[which.n];
+  const m = messages.find(item=>item.id===+node.dataset.id);
+  node.querySelector(".msg").innerHTML = m.badge==="LIVE" ? esc(m.user) : rich(m.text, q);
+  node.scrollIntoView({block:"center"});
+  setStatus(`Match ${which.n+1} of ${nodes.length}`);
+}
+const logJump = {n:-1, dir:1};
+const userJump = {n:-1, dir:1};
+
+$("tabs").onclick = e=>{
+  if (e.target.dataset.closeLog){
+    savedDay = "";
+    show(tab==="log-viewer" ? "all" : tab);
+    return;
+  }
+  if (e.target.dataset.tab==="log-viewer"){ show("log-viewer"); return; }
+  const close = e.target.dataset.close;
+  if (close){
+    userTabs = userTabs.filter(n=>n!==close);
+    if (wordUser===close){ wordUser=""; notes=[]; viewCustom=false; show("words"); }
+    else paintUserTabs();
+    return;
+  }
+  if (e.target.dataset.tab==="user"){
+    wordUser = e.target.dataset.user;
+    notes=[]; selectedWord=""; viewCustom=false;
+    show("words");
+    return;
+  }
+  if (e.target.dataset.tab==="words"){ wordUser=""; viewCustom=false; }
+  if (e.target.dataset.tab){ notes=[]; show(e.target.dataset.tab); }
+};
+$("setup").onclick = ()=>show("setup");
+$("openLog").onclick = ()=>openSavedLog();
+$("saveLogs").onchange = ()=>setStatus($("saveLogs").checked?"Daily logs are on.":"Daily logs are off. This window still shows chat.");
+document.querySelectorAll("[data-scope]").forEach(b=>b.onclick=()=>{
+  scope=b.dataset.scope; notes=[]; selectedWord=""; paintWords(true);
+  document.querySelectorAll("[data-scope]").forEach(x=>x.classList.toggle("on", x===b));
+});
+$("limit").oninput = ()=>{ notes=[]; paintWords(true); };
+$("common").onchange = ()=>{ notes=[]; paintWords(true); setStatus($("common").checked?"Common words are hidden.":"Every word counts, including short ones."); };
+$("messages").onchange = ()=>paintWords(false);
+$("bubbles").onclick = e=>{
+  const x = e.target.dataset.x;
+  if (x){ closeBranch(+x); return; }
+  const noteId = e.target.dataset.note;
+  if (noteId){ expand(notes.find(n=>n.id===+noteId)); return; }
+  const word = e.target.closest("[data-word]")?.dataset.word;
+  if (word) showWord(word);
+};
+$("bubbles").oncontextmenu = e=>{
+  if (!e.target.closest("#bubbles")) return;
+  e.preventDefault();
+  if (notes.length){ clearNotes(); return; }
+  const word = e.target.closest("[data-word]")?.dataset.word;
+  if (word) pin(word);
+};
+document.addEventListener("keydown", e=>{
+  if (e.key==="Escape" && tab==="words" && notes.length) clearNotes();
+});
+document.addEventListener("contextmenu", e=>{
+  if (!e.target.classList.contains("name") || !e.target.dataset.id) return;
+  e.preventDefault();
+  openMenu(e.clientX, e.clientY, +e.target.dataset.id, !!e.target.closest("#copiedLog"));
+});
+$("menu").onclick = e=>{
+  const act = e.target.dataset.act;
+  const msg = messages.find(m=>m.id===+$("menu").dataset.id);
+  $("menu").style.display = "none";
+  if (!msg || !act) return;
+  if (act==="Chat"){
+    if (!["all","twitch","youtube"].includes(tab)) show("all");
+    $("userTitle").textContent = msg.user;
+    $("userLog").innerHTML = messages.filter(m=>m.user.toLowerCase()===msg.user.toLowerCase()).map(m=>row(m)).join("");
+    $("userPanel").classList.add("show");
+    setStatus(`${$("userLog").children.length} lines from ${msg.user}.`);
+  } else if (act==="Chat Commonalities"){
+    const seeds = useful(msg.text);
+    if (!seeds.length){ setStatus("No useful words in that line."); return; }
+    const scopeNow = filter;
+    if (!["all","twitch","youtube"].includes(tab)) show("all");
+    const used = [];
+    const lines = messages.filter(m=>{
+      if ((scopeNow==="twitch"||scopeNow==="youtube") && m.platform!==scopeNow) return false;
+      const words = useful(m.text);
+      const shared = seeds.filter(seed=>words.some(word=>wordsMatch(seed,word)));
+      if (!shared.length && m.id!==msg.id) return false;
+      shared.forEach(seed=>{ if (m.id!==msg.id && !used.includes(seed)) used.push(seed); });
+      return true;
+    });
+    $("userTitle").textContent = used.join(" · ") || "No other matches";
+    $("userLog").innerHTML = lines.map(m=>row(m)).join("");
+    $("userPanel").classList.add("show");
+    setStatus(`${lines.length} lines share ${$("userTitle").textContent}.`);
+  } else if (act==="Words"){
+    openUserWords(msg.user);
+  } else if (act==="Copy"){
+    if (!copied.includes(msg)) copied.push(msg);
+    show("copied");
+    setStatus("Copied that line.");
+  } else if (act==="Delete"){
+    const i = copied.indexOf(msg);
+    if (i>=0) copied.splice(i,1);
+    show("copied");
+  }
+};
+$("closeUser").onclick = ()=>$("userPanel").classList.remove("show");
+$("copiedLog").onclick = e=>{
+  if (e.target.dataset.del==null) return;
+  copied.splice(+e.target.dataset.del,1);
+  paintCopied();
+};
+$("copyAll").onclick = async ()=>{
+  const text = copied.map(m=>`[${m.time}] ${m.platform} ${m.user||m.badge}: ${m.text}`).join("\n");
+  try { await navigator.clipboard.writeText(text); setStatus("Copied the scratch pad."); }
+  catch { setStatus("The browser kept the clipboard closed."); }
+};
+$("search").oninput = ()=>{ query=$("search").value.trim(); logJump.n=-1; paintLog(); };
+$("next").onclick = ()=>{ logJump.dir=1; jump($("log"), $("search"), logJump); };
+$("prev").onclick = ()=>{ logJump.dir=-1; jump($("log"), $("search"), logJump); };
+$("userSearch").oninput = ()=>{ userQuery=$("userSearch").value.trim(); userHit=-1; };
+$("userNext").onclick = ()=>{ userJump.dir=1; userJump.n=userHit; const box=$("userSearch"); jump($("userLog"), box, userJump); userHit=userJump.n; };
+$("userPrev").onclick = ()=>{ userJump.dir=-1; userJump.n=userHit; jump($("userLog"), $("userSearch"), userJump); userHit=userJump.n; };
+document.addEventListener("click", e=>{
+  if (!e.target.closest("#menu") && !e.target.classList.contains("name")) $("menu").style.display="none";
+});
+$("swatches").innerHTML = Object.keys(THEMES).map(name=>`<button class="swatch" type="button" data-theme="${name}">${name}</button>`).join("");
+$("swatches").onclick = e=>{
+  const name = e.target.dataset.theme;
+  if (!name) return;
+  theme = name;
+  const [windowColor,bar,text,muted,border] = THEMES[name];
+  const app = $("app");
+  app.style.setProperty("--window", windowColor);
+  app.style.setProperty("--bar", bar);
+  app.style.setProperty("--text", text);
+  app.style.setProperty("--muted", muted);
+  app.style.setProperty("--border", border);
+  app.classList.toggle("light-rows", name==="White"||name==="Pink");
+  document.querySelectorAll("[data-theme]").forEach(b=>b.classList.toggle("on", b.dataset.theme===name));
+  if (tab==="words") paintWords(false);
+  setStatus(`${name} background. Twitch rows stay purple. YouTube rows stay dark.`);
+};
+document.querySelector('[data-theme="Dark"]').classList.add("on");
+window.addEventListener("resize", ()=>{ if (tab==="words" && window._packed) placeCloud(window._packed); });
+$("bubbles").addEventListener("wheel", e=>{
+  const circles=window._packed||[];
+  if (!circles.length || camScale<=0 || tab!=="words") return;
+  e.preventDefault();
+  const bounds=$("bubbles").getBoundingClientRect();
+  const x=e.clientX-bounds.left, y=e.clientY-bounds.top;
+  const worldX=(x-camX)/camScale, worldY=(y-camY)/camScale;
+  const floor=Math.max(0.05, fitScale*0.25);
+  const ceiling=Math.max(floor, fitScale*40);
+  camScale=Math.min(ceiling, Math.max(floor, camScale*(e.deltaY<0?1.12:1/1.12)));
+  camX=x-worldX*camScale;
+  camY=y-worldY*camScale;
+  viewCustom=true;
+  applyCamera();
+}, {passive:false});
+$("bubbles").addEventListener("mousedown", e=>{
+  if (e.button!==1 || tab!=="words" || !(window._packed||[]).length) return;
+  e.preventDefault();
+  wordDrag={x:e.clientX, y:e.clientY};
+  $("bubbles").classList.add("grabbing");
+});
+window.addEventListener("mousemove", e=>{
+  if (!wordDrag) return;
+  camX+=e.clientX-wordDrag.x;
+  camY+=e.clientY-wordDrag.y;
+  wordDrag={x:e.clientX, y:e.clientY};
+  viewCustom=true;
+  applyCamera();
+});
+window.addEventListener("mouseup", e=>{
+  if (e.button!==1 || !wordDrag) return;
+  wordDrag=null;
+  $("bubbles").classList.remove("grabbing");
+});
+$("bubbles").addEventListener("auxclick", e=>{ if (e.button===1) e.preventDefault(); });
+show("all");
+</script>
+</body>
+</html>
