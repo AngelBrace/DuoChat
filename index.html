@@ -200,6 +200,11 @@ mark{background:orange;color:#111;border-radius:2px}
           <button id="openLog" type="button">Open</button>
           <button id="openFolder" type="button">Open folder</button>
         </div>
+        <div class="note">
+          <strong>Graphics</strong> starts at Normal: landscape, right side up. In the app these buttons turn the monitor DuoChat is on. Other windows on that monitor turn too. Portrait uses the swapped size.
+          <div class="swatches" id="turns"></div>
+          <div class="swatches" id="sizes"></div>
+        </div>
         <div class="swatches" id="swatches"></div>
       </section>
     </div>
@@ -365,7 +370,7 @@ const captions = {
   "youtube-chat":"YouTube Chat is the other hidden live page. DuoChat reads it and files the lines.",
   copied:"Copied is a scratch pad for a report. Delete works only here. The log itself is left alone. Two lines are already here: Granger’s crust, and Mithrandir’s timeout.",
   words:"Words counts the open view. Common words starts on, so ordinary words stay out. Click a bubble for its lines. Right-click a bubble to pin the newest line. The wheel zooms toward the pointer. Hold the middle mouse button to drag the cloud.",
-  setup:"Setup stores the rooms and the background. Daily logs start on. Open a saved day to read it as LogViewer plus the date. White and Pink are the backgrounds that darken the purple Twitch rows. YouTube rows stay dark.",
+  setup:"Setup stores the rooms, the background, and the monitor. Graphics starts at Normal: landscape and right side up. Daily logs start on. White and Pink are the backgrounds that darken the purple Twitch rows. YouTube rows stay dark.",
   "log-viewer":"LogViewer plus the date is a saved file. All, Twitch, and YouTube stay live. This practice day is 2026-11-07."
 };
 let tab = "all";
@@ -877,6 +882,30 @@ $("tabs").onclick = e=>{
 $("setup").onclick = ()=>show("setup");
 $("openLog").onclick = ()=>openSavedLog();
 $("openFolder").onclick = ()=>setStatus("In the app, Open folder shows Documents\\DuoChat\\Logs in File Explorer.");
+const turns = [["Normal",0],["Portrait",90],["Upside down",180],["Portrait flipped",270]];
+const sizes = [["This monitor","0"],["1280×720","1280"],["1600×900","1600"],["1920×1080","1920"],["2560×1440","2560"]];
+let displayAngle = 0;
+$("turns").innerHTML = turns.map(([name,angle])=>`<button class="swatch${angle===0?" on":""}" type="button" data-turn="${angle}">${name}</button>`).join("");
+$("sizes").innerHTML = sizes.map(([name,width],i)=>`<button class="swatch${i===0?" on":""}" type="button" data-size="${width}">${name}</button>`).join("");
+$("turns").onclick = e=>{
+  const angle = +e.target.dataset.turn;
+  if (!e.target.dataset.turn && e.target.dataset.turn!=="0") return;
+  displayAngle = angle;
+  const app = $("app");
+  app.style.transformOrigin = "center center";
+  app.style.transform = angle ? `rotate(${angle}deg)` : "";
+  document.querySelectorAll("[data-turn]").forEach(b=>b.classList.toggle("on", +b.dataset.turn===angle));
+  const label = {0:"Normal. Landscape, right side up.",90:"Portrait.",180:"Upside down.",270:"Portrait flipped."}[angle];
+  setStatus(label + " In the app this turns the monitor DuoChat is on.");
+};
+$("sizes").onclick = e=>{
+  const width = e.target.dataset.size;
+  if (!width) return;
+  document.querySelectorAll("[data-size]").forEach(b=>b.classList.toggle("on", b.dataset.size===width));
+  setStatus(width==="0"
+    ? "This monitor keeps its current pixel size. Portrait still swaps the sides."
+    : `In the app, ${e.target.textContent} sets this monitor. Portrait uses the swapped size.`);
+};
 $("saveLogs").onchange = ()=>setStatus($("saveLogs").checked?"Daily logs are on.":"Daily logs are off. This window still shows chat.");
 document.querySelectorAll("[data-scope]").forEach(b=>b.onclick=()=>{
   scope=b.dataset.scope; notes=[]; selectedWord=""; paintWords(true);
