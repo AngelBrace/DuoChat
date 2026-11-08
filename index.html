@@ -117,7 +117,7 @@ mark{background:orange;color:#111;border-radius:2px}
 <body>
 <div class="wrap">
   <h1>DuoChat 1.0</h1>
-  <p class="lead">DuoChat 1.0 is a local window for reading Twitch and YouTube live chat together. You still type in your chat client. This is an interactive mock up of the real app with two fake logs. Click through it the same way you click the app.</p>
+  <p class="lead">DuoChat 1.0 is a local window for reading Twitch and YouTube live chat together. You still type in your chat client. This is an interactive mock up of the real app with two fake logs. When online, real Twitch channel emotes are shown. Click through it the same way you click the app.</p>
   <div class="app" id="app">
     <div class="chrome">
       <div class="brand">DuoChat 1.0 <button id="setup" type="button">Setup</button></div>
@@ -375,11 +375,11 @@ Y|22:18:52|OFFLINE||Connection Lost via Nazgûl DDoS Attack
 });
 const messages = raw.sort((a,b)=>a.time.localeCompare(b.time)||a.platform.localeCompare(b.platform)||a.id-b.id);
 const captions = {
-  all:"All mixes both practice logs by the clock. YouTube starts at 22:17:10. The purple pizza lines join at 22:17:35. Emote names and emoji are drawn as ordinary Google emoji pictures. A donation, a spoken line, a mod tag, and “stream offline” are ordinary rows.",
-  twitch:"Twitch keeps the purple rows. This room is the void pizza.",
+  all:"All mixes both practice logs by the clock. YouTube starts at 22:17:10. The purple pizza lines join at 22:17:35. This is a mock up, so emote names and emoji are drawn as ordinary Google emoji pictures. When online, real Twitch channel emotes are shown. A donation, a spoken line, a mod tag, and “stream offline” are ordinary rows.",
+  twitch:"Twitch keeps the purple rows. This room is the void pizza. This is a mock up. When online, real Twitch channel emotes are shown.",
   youtube:"YouTube keeps the dark rows with the red edge. This room is the potato argument.",
-  "twitch-chat":"This screen shows the active messages when in an online chat.",
-  "youtube-chat":"This screen shows the active messages when in an online chat.",
+  "twitch-chat":"This is a mock up. This screen shows the active messages when in an online chat. When online, real Twitch channel emotes are shown.",
+  "youtube-chat":"This is a mock up. This screen shows the active messages when in an online chat. When online, real Twitch channel emotes are shown.",
   copied:"Copied is a scratch pad for a report. Delete works only here. The log itself is left alone. Two lines are already here: Granger’s crust, and Mithrandir’s timeout.",
   words:"Words counts the open view. Common words starts on, so ordinary words stay out. Click a bubble for its lines. Right-click a bubble to pin the newest line. The wheel zooms toward the pointer. Hold the middle mouse button to drag the cloud.",
   setup:"Setup stores the rooms, the background, and the monitor. Graphics starts at Normal: landscape and right side up. Daily logs start on. White and Pink are the backgrounds that darken the purple Twitch rows. YouTube rows stay dark.",
@@ -829,8 +829,8 @@ function show(next){
     document.querySelector('[data-page="live"]').classList.add("show");
     const yt = next==="youtube-chat";
     $("liveUrl").textContent = yt?"youtube.com/live_chat":"twitch.tv/popout/chat";
-    $("liveBody").textContent = "This screen shows the active messages when in an online chat.";
-    $("liveNote").textContent = "This screen shows the active messages when in an online chat.";
+    $("liveBody").textContent = "This is a mock up. This screen shows the active messages when in an online chat. When online, real Twitch channel emotes are shown.";
+    $("liveNote").textContent = "This is a mock up. This screen shows the active messages when in an online chat. When online, real Twitch channel emotes are shown.";
   } else if (next==="copied"){
     document.querySelector('[data-page="copied"]').classList.add("show");
     paintCopied();
