@@ -198,6 +198,7 @@ mark{background:orange;color:#111;border-radius:2px}
           <label class="check" style="margin-top:8px"><input id="saveLogs" type="checkbox" checked> Save daily logs</label>
           <div id="savedDays" style="margin:8px 0"></div>
           <button id="openLog" type="button">Open</button>
+          <button id="openFolder" type="button">Open folder</button>
         </div>
         <div class="swatches" id="swatches"></div>
       </section>
@@ -224,7 +225,7 @@ mark{background:orange;color:#111;border-radius:2px}
     </article>
     <article>
       <h2>Saved logs</h2>
-      <p>Setup starts with Save daily logs checked. Open the practice day. The tab reads LogViewer and the date, so it is obvious those rows are a saved file and not the live rooms. × closes that tab.</p>
+      <p>Setup starts with Save daily logs checked. Open the practice day. The tab reads LogViewer and the date, so it is obvious those rows are a saved file and not the live rooms. × closes that tab. Open folder, in the real app, shows Documents\DuoChat\Logs so a .txt file can be read in another editor.</p>
     </article>
   </div>
 </div>
@@ -875,6 +876,7 @@ $("tabs").onclick = e=>{
 };
 $("setup").onclick = ()=>show("setup");
 $("openLog").onclick = ()=>openSavedLog();
+$("openFolder").onclick = ()=>setStatus("In the app, Open folder shows Documents\\DuoChat\\Logs in File Explorer.");
 $("saveLogs").onchange = ()=>setStatus($("saveLogs").checked?"Daily logs are on.":"Daily logs are off. This window still shows chat.");
 document.querySelectorAll("[data-scope]").forEach(b=>b.onclick=()=>{
   scope=b.dataset.scope; notes=[]; selectedWord=""; paintWords(true);
