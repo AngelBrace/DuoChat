@@ -201,6 +201,15 @@ mark{background:orange;color:#111;border-radius:2px}
           <button id="openFolder" type="button">Open folder</button>
         </div>
         <div class="note">
+          <strong>Tab buttons</strong> are All, Twitch, YouTube, Copied, and the other tabs on that row. They start at the current size. Setup and the other buttons stay as they are.
+          <div style="margin-top:8px">
+            <button id="tabSmaller" type="button">Smaller</button>
+            <button id="tabNormal" type="button">Normal</button>
+            <button id="tabLarger" type="button">Larger</button>
+            <span id="tabSizeLabel" style="margin-left:8px;color:var(--muted)">Normal</span>
+          </div>
+        </div>
+        <div class="note">
           <strong>Graphics</strong> starts at Normal: landscape, right side up. In the app these buttons turn the monitor DuoChat is on. Other windows on that monitor turn too. Portrait uses the swapped size.
           <div class="swatches" id="turns"></div>
           <div class="swatches" id="sizes"></div>
@@ -764,13 +773,31 @@ function closeBranch(id){
   if (drop.has(listedNote) && parent) fillBranch(parent);
   setStatus("Closed that branch.");
 }
+let tabStep = 2;
+const tabLooks = [
+  {name:"Smaller", font:"11px", pad:"2px 7px"},
+  {name:"Small", font:"12px", pad:"3px 8px"},
+  {name:"Normal", font:"", pad:""},
+  {name:"Large", font:"16px", pad:"6px 13px"},
+  {name:"Larger", font:"18px", pad:"8px 16px"}
+];
+function applyTabLook(){
+  const look = tabLooks[tabStep];
+  document.querySelectorAll("#tabs button").forEach(b=>{
+    b.style.fontSize = look.font;
+    b.style.padding = look.pad;
+  });
+  $("tabSizeLabel").textContent = look.name;
+}
 function paintUserTabs(){
   $("userTabs").innerHTML = userTabs.map(name=>`<span class="user-tab"><button type="button" data-tab="user" data-user="${esc(name)}" class="${tab==="words"&&wordUser.toLowerCase()===name.toLowerCase()?"on":""}">${esc(name)} Words</button><button class="tiny" type="button" data-close="${esc(name)}" title="Close ${esc(name)} Words">×</button></span>`).join("");
+  applyTabLook();
 }
 function paintLogTab(){
   $("logTab").innerHTML = savedDay
     ? `<span class="user-tab"><button type="button" data-tab="log-viewer" class="${tab==="log-viewer"?"on":""}">LogViewer ${savedDay}</button><button class="tiny" type="button" data-close-log="1" title="Close LogViewer">×</button></span>`
     : "";
+  applyTabLook();
 }
 function paintSavedDays(){
   $("savedDays").innerHTML = `<button type="button" class="on" data-day="${practiceDay}">${practiceDay}</button>`;
@@ -882,6 +909,14 @@ $("tabs").onclick = e=>{
 $("setup").onclick = ()=>show("setup");
 $("openLog").onclick = ()=>openSavedLog();
 $("openFolder").onclick = ()=>setStatus("In the app, Open folder shows Documents\\DuoChat\\Logs in File Explorer.");
+function setTabStep(step){
+  tabStep = Math.max(0, Math.min(tabLooks.length-1, step));
+  applyTabLook();
+  setStatus("Tab buttons are " + tabLooks[tabStep].name.toLowerCase() + ".");
+}
+$("tabSmaller").onclick = ()=>setTabStep(tabStep-1);
+$("tabNormal").onclick = ()=>setTabStep(2);
+$("tabLarger").onclick = ()=>setTabStep(tabStep+1);
 const turns = [["Normal",0],["Portrait",90],["Upside down",180],["Portrait flipped",270]];
 const sizes = [["This monitor","0"],["1280×720","1280"],["1600×900","1600"],["1920×1080","1920"],["2560×1440","2560"]];
 let displayAngle = 0;
