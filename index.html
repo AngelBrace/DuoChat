@@ -251,7 +251,7 @@ mark{background:orange;color:#111;border-radius:2px}
   <div class="lessons">
     <article>
       <h2>Tabs</h2>
-      <p>All mixes both rooms by the clock. Twitch and YouTube each keep one room. Twitch Chat and YouTube Chat are the hidden live pages the app reads. They are not a second copy of the log. Chat Bubbles packs recent messages into circles. Copied is the last tab. Drag or swipe a screen left or right to pull the next one over. The row ends at the first and last tab. The same row is on Windows and Android.</p>
+      <p>All mixes both rooms by the clock. Twitch and YouTube each keep one room. Twitch Chat and YouTube Chat are the live chat rooms. They show the chat only, with no stream video and no stream audio, and they stay open while you look at the log. They are not a second copy of the log. Chat Bubbles packs recent messages into circles. Copied is the last tab. On Android, Error Logs sits just before Copied. Drag or swipe a screen left or right to pull the next one over. The row ends at the first and last tab.</p>
     </article>
     <article>
       <h2>A name</h2>
@@ -267,7 +267,7 @@ mark{background:orange;color:#111;border-radius:2px}
     </article>
     <article>
       <h2>Saved logs</h2>
-      <p>Setup starts with Save daily logs checked. Open the practice day. The tab reads LogViewer and the date, so it is obvious those rows are a saved file and not the live rooms. × closes that tab. On Windows, Open folder shows Documents\DuoChat\Logs. On Android, Open folder hands that day’s plain text to another app.</p>
+      <p>Setup starts with Save daily logs checked. Open the practice day. The tab reads LogViewer and the date, so it is obvious those rows are a saved file and not the live rooms. × closes that tab. On Windows, Open folder shows Documents\DuoChat\Logs. On Android, Open folder hands that day’s plain text to another app. Install a new Android copy over the app already on the phone. Logs, the scratch pad, and the saved rooms stay. Uninstalling the app removes that folder. If a chat tab stays blank, open Error Logs, just before Copied, and take a screenshot.</p>
     </article>
   </div>
 </div>
@@ -403,8 +403,8 @@ const captions = {
   all:"All mixes both practice logs by the clock. YouTube starts at 22:17:10. The purple pizza lines join at 22:17:35. This is a mock up, so emote names and emoji are drawn as ordinary Google emoji pictures. When online, real Twitch channel emotes are shown. A donation, a spoken line, a mod tag, and “stream offline” are ordinary rows.",
   twitch:"Twitch keeps the purple rows. This room is the void pizza. This is a mock up. When online, real Twitch channel emotes are shown.",
   youtube:"YouTube keeps the dark rows with the red edge. This room is the potato argument.",
-  "twitch-chat":"This is a mock up. This screen shows the active messages when in an online chat. When online, real Twitch channel emotes are shown.",
-  "youtube-chat":"This is a mock up. This screen shows the active messages when in an online chat. When online, real Twitch channel emotes are shown.",
+  "twitch-chat":"Twitch Chat is the live Twitch room. It is the chat only, with no stream video and no stream audio. This is a mock up of that page. The real page stays open while you look at the other tabs. When online, real Twitch channel emotes are shown.",
+  "youtube-chat":"YouTube Chat is the live YouTube room. It is the chat only, with no stream video and no stream audio. This is a mock up of that page. The real page stays open while you look at the other tabs.",
   "chat-bubbles":"Chat Bubbles packs recent messages into circles. A short line is a small circle. A longer line grows so the time and the paragraph fit. Newer, larger bubbles sit toward the outside. On Windows the wheel zooms and the middle mouse drags. On Android, pinch to zoom and drag with two fingers. Right-click or long-press opens the name menu.",
   copied:"Copied is a scratch pad for a report. Delete works only here. The log itself is left alone. Two lines are already here: Granger’s crust, and Mithrandir’s timeout.",
   words:"Words counts the open view. Common words starts on, so ordinary words stay out. Click or tap a bubble for its lines. Right-click on Windows, or long-press on Android, to pin the newest line. On Windows the wheel zooms and the middle mouse drags. On Android, pinch to zoom and drag with two fingers.",
@@ -1031,8 +1031,12 @@ function show(next){
     document.querySelector('[data-page="live"]').classList.add("show");
     const yt = next==="youtube-chat";
     $("liveUrl").textContent = yt?"youtube.com/live_chat":"twitch.tv/popout/chat";
-    $("liveBody").textContent = "This is a mock up. This screen shows the active messages when in an online chat. When online, real Twitch channel emotes are shown.";
-    $("liveNote").textContent = "This is a mock up. This screen shows the active messages when in an online chat. When online, real Twitch channel emotes are shown.";
+    $("liveBody").textContent = yt
+      ? "This is a mock up of the YouTube chat room. The real page is the chat only, with no stream video and no stream audio."
+      : "This is a mock up of the Twitch chat room. The real page is the chat only, with no stream video and no stream audio.";
+    $("liveNote").textContent = yt
+      ? "YouTube Chat stays open while you look at the other tabs."
+      : "Twitch Chat stays open while you look at the other tabs. When online, real Twitch channel emotes are shown.";
   } else if (next==="chat-bubbles"){
     document.querySelector('[data-page="chat-bubbles"]').classList.add("show");
     paintChatBubbles();
