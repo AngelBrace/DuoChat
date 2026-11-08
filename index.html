@@ -667,8 +667,11 @@ function paintWords(reset){
   if (reset){ notes=[]; listedNote=0; selectedWord=""; viewCustom=false; }
   const hide = $("common").checked;
   const counts = new Map();
+  const everyWord = new Set();
   wordPool().forEach(m=>{
-    tokens(m.text, hide).forEach(({key,raw})=>{
+    tokens(m.text, false).forEach(({key,raw})=>{
+      everyWord.add(key);
+      if (hide && (key.length<4 || STOP.has(key))) return;
       const rec = counts.get(key)||{n:0,label:raw,best:0,lines:[]};
       rec.n++;
       const spells = rec.label.toLowerCase()===raw.toLowerCase() ? rec.best+1 : 1;
@@ -680,7 +683,11 @@ function paintWords(reset){
   const limit = +$("limit").value;
   const ranked = [...counts.values()].sort((a,b)=>b.n-a.n||a.label.localeCompare(b.label)).slice(0,limit);
   const rareFirst = [...ranked].sort((a,b)=>a.n-b.n||a.label.localeCompare(b.label));
-  const summary = `${wordPool().length} msgs · ${rareFirst.length} words${wordUser?" · "+wordUser:""}`;
+  const words = hide && counts.size!==everyWord.size ? `${counts.size}/${everyWord.size} Words` : `${counts.size} Words`;
+  const summary = wordPool().length===0 ? "No messages in this view."
+    : everyWord.size===0 ? "No words in this view."
+    : counts.size===0 ? "No words left after common words."
+    : `${wordUser?wordUser+" · ":""}${wordPool().length} msgs · ${words}`;
   $("wordStatus").textContent = summary;
   if (tab==="words") setStatus(summary);
   const circles = packCircles(rareFirst);
@@ -947,7 +954,7 @@ document.querySelectorAll("[data-scope]").forEach(b=>b.onclick=()=>{
   document.querySelectorAll("[data-scope]").forEach(x=>x.classList.toggle("on", x===b));
 });
 $("limit").oninput = ()=>{ notes=[]; paintWords(true); };
-$("common").onchange = ()=>{ notes=[]; paintWords(true); setStatus($("common").checked?"Common words are hidden.":"Every word counts, including short ones."); };
+$("common").onchange = ()=>{ notes=[]; paintWords(true); };
 $("messages").onchange = ()=>paintWords(false);
 $("bubbles").onclick = e=>{
   const x = e.target.dataset.x;
