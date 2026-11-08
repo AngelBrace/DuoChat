@@ -32,7 +32,9 @@ button:active{opacity:.82}
 button.on{background:#3a3a3d;color:#fff}
 button.tiny{padding:6px 8px}
 input[type=search],input[type=range]{cursor:auto}
-.stage{flex:1;min-height:0;position:relative}
+.stage{flex:1;min-height:0;position:relative;overflow:hidden;touch-action:pan-y}
+#swipeGhost{display:none;position:absolute;inset:0;z-index:6;pointer-events:none;overflow:hidden;background:var(--window)}
+#swipeGhost .page{display:flex;height:100%}
 .page{display:none;height:100%;flex-direction:column}
 .page.show{display:flex}
 .tool{display:flex;gap:8px;align-items:center;flex-wrap:wrap;background:var(--bar);padding:8px;border-bottom:1px solid var(--border)}
@@ -131,7 +133,8 @@ mark{background:orange;color:#111;border-radius:2px}
         <span id="logTab"></span>
       </div>
     </div>
-    <div class="stage">
+    <div class="stage" id="stage">
+      <div id="swipeGhost"></div>
       <section class="page" data-page="log">
         <div class="tool">
           <input id="search" type="search" placeholder="Find in this log" aria-label="Find in this log"/>
@@ -223,7 +226,7 @@ mark{background:orange;color:#111;border-radius:2px}
   <div class="lessons">
     <article>
       <h2>Tabs</h2>
-      <p>All mixes both rooms by the clock. Twitch and YouTube each keep one room. Twitch Chat and YouTube Chat are the hidden live pages the app reads. They are not a second copy of the log.</p>
+      <p>All mixes both rooms by the clock. Twitch and YouTube each keep one room. Twitch Chat and YouTube Chat are the hidden live pages the app reads. They are not a second copy of the log. Drag a screen left or right to pull the next one over. The row ends at the first and last tab.</p>
     </article>
     <article>
       <h2>A name</h2>
@@ -1094,6 +1097,93 @@ window.addEventListener("mouseup", e=>{
   $("bubbles").classList.remove("grabbing");
 });
 $("bubbles").addEventListener("auxclick", e=>{ if (e.button===1) e.preventDefault(); });
+let screenDrag=null;
+function screenList(){
+  const list=["all","twitch","youtube","twitch-chat","youtube-chat","copied","words"];
+  userTabs.forEach(name=>list.push("user:"+name));
+  if (savedDay) list.push("log-viewer");
+  return list;
+}
+function screenNow(){
+  if (tab==="setup") return "";
+  return tab==="words" && wordUser ? "user:"+wordUser : tab;
+}
+function openScreen(id){
+  if (id.startsWith("user:")){
+    wordUser=id.slice(5); notes=[]; selectedWord=""; viewCustom=false; show("words");
+    return;
+  }
+  if (id==="words"){ wordUser=""; notes=[]; selectedWord=""; viewCustom=false; }
+  show(id);
+}
+function placeScreenDrag(dx){
+  const list=screenList();
+  const width=$("stage").clientWidth||1;
+  let index=list.indexOf(screenDrag.origin);
+  if (index<0) index=0;
+  while (dx<=-width && index<list.length-1){ dx+=width; index++; }
+  while (dx>=width && index>0){ dx-=width; index--; }
+  if (index<=0 && dx>0) dx=0;
+  if (index>=list.length-1 && dx<0) dx=0;
+  const neighbor=dx<0?list[index+1]:dx>0?list[index-1]:"";
+  const key=list[index]+">"+(neighbor||"");
+  if (key!==screenDrag.key){
+    screenDrag.key=key;
+    document.querySelectorAll(".page").forEach(page=>page.style.transform="");
+    openScreen(list[index]);
+    const page=document.querySelector(".page.show");
+    const ghost=$("swipeGhost");
+    ghost.innerHTML="";
+    if (neighbor && page){
+      const clone=page.cloneNode(true);
+      clone.querySelectorAll("[id]").forEach(node=>node.removeAttribute("id"));
+      clone.classList.add("show");
+      ghost.appendChild(clone);
+      ghost.style.display="block";
+      openScreen(neighbor);
+    } else ghost.style.display="none";
+  }
+  const shown=document.querySelector(".page.show");
+  if (shown) shown.style.transform=neighbor?`translateX(${dx<0?dx+width:dx-width}px)`:"translateX(0)";
+  $("swipeGhost").style.transform=`translateX(${dx}px)`;
+  screenDrag.dx=dx;
+  screenDrag.index=index;
+}
+function clearScreenDrag(){
+  $("swipeGhost").style.display="none";
+  $("swipeGhost").innerHTML="";
+  $("swipeGhost").style.transform="";
+  document.querySelectorAll(".page").forEach(page=>page.style.transform="");
+}
+$("stage").addEventListener("pointerdown", e=>{
+  if (e.button!==0 || tab==="setup" || e.target.closest("button, input, textarea, a, label")) return;
+  screenDrag={id:e.pointerId, x:e.clientX, y:e.clientY, on:false, origin:screenNow(), key:"", dx:0, index:0};
+});
+window.addEventListener("pointermove", e=>{
+  if (!screenDrag || e.pointerId!==screenDrag.id) return;
+  const dx=e.clientX-screenDrag.x, dy=e.clientY-screenDrag.y;
+  if (!screenDrag.on){
+    if (Math.hypot(dx,dy)<14) return;
+    if (Math.abs(dx)<Math.abs(dy)*1.15){ screenDrag=null; return; }
+    screenDrag.on=true;
+  }
+  placeScreenDrag(dx);
+});
+function endScreenDrag(e){
+  if (!screenDrag || (e && e.pointerId!==screenDrag.id)) return;
+  const drag=screenDrag;
+  screenDrag=null;
+  if (!drag.on) return;
+  const width=$("stage").clientWidth||1;
+  const list=screenList();
+  let index=drag.index;
+  if (drag.dx<=-width*0.22 && index<list.length-1) index++;
+  else if (drag.dx>=width*0.22 && index>0) index--;
+  clearScreenDrag();
+  openScreen(list[Math.max(0, Math.min(list.length-1, index))]);
+}
+window.addEventListener("pointerup", endScreenDrag);
+window.addEventListener("pointercancel", endScreenDrag);
 show("all");
 </script>
 </body>
