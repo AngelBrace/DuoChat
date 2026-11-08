@@ -210,17 +210,15 @@ mark{background:orange;color:#111;border-radius:2px}
       <section class="page" data-page="setup">
         <div class="note"><strong>Setup</strong> remembers the Twitch channel, the YouTube video, and the window size. The color buttons change the window. Chat rows keep their own colors.</div>
         <div class="note">
-          <strong>Highlights</strong> keep a color on every matching word. Light colors use black letters. Highlight channel paints the open Twitch name in green. A note plays when that word arrives on a new live line. Choosing a note here plays it once. This practice log starts with taters and does not chime.
+          <strong>Highlights</strong> keep a color on every matching word. The note stays with that color. Click a default color note to hear it. Highlight channel paints the open Twitch name in green. This practice log starts with taters and does not chime.
           <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
             <input id="highlightWord" type="text" placeholder="Word" style="flex:1;min-width:140px;background:#101014;color:var(--text);border-color:var(--border)">
-            <select id="highlightNote"></select>
             <button id="addHighlight" type="button">Add</button>
           </div>
           <div style="margin-top:8px"><strong>Default color notes</strong></div>
           <div class="swatches" id="highlightColors"></div>
           <div id="highlightList" style="margin:8px 0"></div>
           <label class="check"><input id="highlightChannel" type="checkbox" checked> Highlight channel</label>
-          <select id="highlightChannelNote"></select>
           <label class="check" style="margin-top:8px"><input id="highlightSounds" type="checkbox" checked> Highlight sounds</label>
         </div>
         <div class="note">
@@ -448,14 +446,11 @@ const HL = {
   Purple:{fill:"#7E57C2",ink:"#fff"},
   Red:{fill:"#E53935",ink:"#fff"}
 };
-let highlights = [{word:"taters", color:"Orange", note:"No Sound"}];
+let highlights = [{word:"taters", color:"Orange"}];
 let highlightPick = "Orange";
-let highlightNote = "No Sound";
 let highlightChannel = true;
 let highlightSounds = true;
-let highlightChannelNote = "No Sound";
-const NOTES = ["No Sound","Do","Re","Mi","Fa","So","La","Ti","High Do"];
-const PITCH = {Do:523.25,Re:587.33,Mi:659.25,Fa:698.46,So:783.99,La:880,Ti:987.77,"High Do":1046.5};
+const PITCH = {Do:523.25,Re:587.33,Mi:659.25,Fa:698.46,So:783.99,La:880,Ti:987.77};
 const COLOR_NOTE = {Orange:"Do",Yellow:"Re",Green:"Mi",Aquamarine:"Fa","Light pink":"So",Purple:"La",Red:"Ti"};
 let bellCtx;
 function playBell(name){
@@ -482,9 +477,6 @@ function playBell(name){
     osc.start(now);
     osc.stop(now + 0.36);
   });
-}
-function noteOptions(selected){
-  return NOTES.map(name=>`<option${name===selected?" selected":""}>${esc(name)}</option>`).join("");
 }
 const guideChannel = "blukitsune9";
 function activeRules(){
@@ -1172,24 +1164,25 @@ function paintHighlightList(){
   }).join("");
   $("highlightList").innerHTML = highlights.map((item,index)=>{
     const tone = HL[item.color]||HL.Orange;
-    return `<div style="display:flex;gap:8px;align-items:center;margin:4px 0"><span class="hl" style="background:${tone.fill};color:${tone.ink}">${esc(item.word)}</span><select data-note-index="${index}">${noteOptions(item.note||"No Sound")}</select><button type="button" data-remove="${index}">Remove</button></div>`;
+    const note = COLOR_NOTE[item.color] || "Do";
+    return `<div style="display:flex;gap:8px;align-items:center;margin:4px 0"><span class="hl" style="background:${tone.fill};color:${tone.ink};text-align:center">${esc(item.word)}<br><small>${note}</small></span><button type="button" data-remove="${index}">Remove</button></div>`;
   }).join("");
 }
 $("highlightColors").onclick = e=>{
-  const color = e.target.dataset.color;
-  if (!color) return;
+  const button = e.target.closest("[data-color]");
+  if (!button) return;
+  const color = button.dataset.color;
   highlightPick = color;
-  highlightNote = COLOR_NOTE[color] || "Do";
-  $("highlightNote").value = highlightNote;
-  setStatus(`${color} is the default color note ${highlightNote}.`);
-  if (highlightSounds) playBell(highlightNote);
+  const note = COLOR_NOTE[color] || "Do";
+  setStatus(`${color} plays ${note}.`);
+  playBell(note);
   paintHighlightList();
 };
 $("addHighlight").onclick = ()=>{
   const word = $("highlightWord").value.trim();
   if (!word){ setStatus("Enter a word to highlight."); return; }
   highlights = highlights.filter(item=>item.word.toLowerCase()!==word.toLowerCase());
-  highlights.push({word, color:highlightPick, note:highlightNote});
+  highlights.push({word, color:highlightPick});
   $("highlightWord").value = "";
   setStatus(`${word} is ${highlightPick}.`);
   repaintHighlights();
@@ -1205,24 +1198,6 @@ $("highlightChannel").onchange = ()=>{
   highlightChannel = $("highlightChannel").checked;
   setStatus(highlightChannel?"The open Twitch channel is highlighted in green.":"Channel highlight is off.");
   repaintHighlights();
-};
-$("highlightList").onchange = e=>{
-  const index = e.target.dataset.noteIndex;
-  if (index==null) return;
-  highlights[+index].note = e.target.value;
-  playBell(e.target.value);
-  setStatus(`${highlights[+index].word} plays ${e.target.value}.`);
-};
-$("highlightNote").innerHTML = noteOptions(highlightNote);
-$("highlightChannelNote").innerHTML = noteOptions(highlightChannelNote);
-$("highlightNote").onchange = ()=>{
-  highlightNote = $("highlightNote").value;
-  playBell(highlightNote);
-};
-$("highlightChannelNote").onchange = ()=>{
-  highlightChannelNote = $("highlightChannelNote").value;
-  playBell(highlightChannelNote);
-  setStatus(`The channel note is ${highlightChannelNote}.`);
 };
 $("highlightSounds").onchange = ()=>{
   highlightSounds = $("highlightSounds").checked;
