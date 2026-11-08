@@ -378,8 +378,8 @@ const captions = {
   all:"All mixes both practice logs by the clock. YouTube starts at 22:17:10. The purple pizza lines join at 22:17:35. Emote names and emoji are drawn as ordinary Google emoji pictures. A donation, a spoken line, a mod tag, and “stream offline” are ordinary rows.",
   twitch:"Twitch keeps the purple rows. This room is the void pizza.",
   youtube:"YouTube keeps the dark rows with the red edge. This room is the potato argument.",
-  "twitch-chat":"Twitch Chat is the hidden live page. In the app it stays open while you read the log.",
-  "youtube-chat":"YouTube Chat is the other hidden live page. DuoChat reads it and files the lines.",
+  "twitch-chat":"This screen shows the active messages when in an online chat.",
+  "youtube-chat":"This screen shows the active messages when in an online chat.",
   copied:"Copied is a scratch pad for a report. Delete works only here. The log itself is left alone. Two lines are already here: Granger’s crust, and Mithrandir’s timeout.",
   words:"Words counts the open view. Common words starts on, so ordinary words stay out. Click a bubble for its lines. Right-click a bubble to pin the newest line. The wheel zooms toward the pointer. Hold the middle mouse button to drag the cloud.",
   setup:"Setup stores the rooms, the background, and the monitor. Graphics starts at Normal: landscape and right side up. Daily logs start on. White and Pink are the backgrounds that darken the purple Twitch rows. YouTube rows stay dark.",
@@ -829,8 +829,8 @@ function show(next){
     document.querySelector('[data-page="live"]').classList.add("show");
     const yt = next==="youtube-chat";
     $("liveUrl").textContent = yt?"youtube.com/live_chat":"twitch.tv/popout/chat";
-    $("liveBody").textContent = yt?"This page stays loaded. The lines you read are on YouTube and All.":"This page stays loaded. The lines you read are on Twitch and All.";
-    $("liveNote").innerHTML = yt?"<strong>YouTube Chat</strong> is the source page, dimmed here so it is obvious this is not the log.":"<strong>Twitch Chat</strong> is the source page, dimmed here so it is obvious this is not the log.";
+    $("liveBody").textContent = "This screen shows the active messages when in an online chat.";
+    $("liveNote").textContent = "This screen shows the active messages when in an online chat.";
   } else if (next==="copied"){
     document.querySelector('[data-page="copied"]').classList.add("show");
     paintCopied();
