@@ -131,6 +131,7 @@ mark{background:orange;color:#111;border-radius:2px}
         <button type="button" data-tab="youtube-chat">YouTube Chat</button>
         <button type="button" data-tab="chat-bubbles">Chat Bubbles</button>
         <button type="button" data-tab="words">Words</button>
+        <button type="button" data-tab="highlights">Highlights</button>
         <span id="userTabs"></span>
         <span id="logTab"></span>
         <button type="button" data-tab="copied">Copied</button>
@@ -187,6 +188,15 @@ mark{background:orange;color:#111;border-radius:2px}
           <button type="button" id="copyAll">Copy all</button>
         </div>
         <div class="log" id="copiedLog"></div>
+      </section>
+      <section class="page" data-page="highlights">
+        <div class="tool">
+          <div>
+            <strong>Highlights</strong>
+            <div id="highlightStatus">Lines that matched a highlight today.</div>
+          </div>
+        </div>
+        <div class="log" id="highlightLog"></div>
       </section>
       <section class="page" data-page="words">
         <div class="tool">
@@ -258,7 +268,7 @@ mark{background:orange;color:#111;border-radius:2px}
   <div class="lessons">
     <article>
       <h2>Tabs</h2>
-      <p>'All' mixes both rooms by the clock. 'Twitch' and 'YouTube' each keep one room. 'Twitch Chat' and 'YouTube Chat' are the live chat rooms. They show the chat only, with no stream video and no stream audio, and they stay open while you look at the log. They are not a second copy of the log. 'Chat Bubbles' shows 100 messages as circles. Latest, on the right, follows new lines. Start, on the left, shows the first 100 and stays still. 'Copied' is the last tab. On Android, 'Setup' can show an 'Error Logs' tab just before 'Copied'. That tab stays out of the row until the switch is on. Drag or swipe a screen left or right to pull the next one over. The row ends at the first and last tab.</p>
+      <p>'All' mixes both rooms by the clock. 'Twitch' and 'YouTube' each keep one room. 'Twitch Chat' and 'YouTube Chat' are the live chat rooms. They show the chat only, with no stream video and no stream audio, and they stay open while you look at the log. They are not a second copy of the log. 'Chat Bubbles' shows 100 messages as circles. Latest, on the right, follows new lines. Start, on the left, shows the first 100 and stays still. 'Highlights' keeps the lines that matched a highlight word, oldest first, with the name and the time. 'Copied' is the last tab. On Android, 'Setup' can show an 'Error Logs' tab just before 'Copied'. That tab stays out of the row until the switch is on. Drag or swipe a screen left or right to pull the next one over. The row ends at the first and last tab.</p>
     </article>
     <article>
       <h2>A name</h2>
@@ -413,6 +423,7 @@ const captions = {
   "twitch-chat":"'Twitch Chat' is the live Twitch room. It is the chat only, with no stream video and no stream audio. This is a mock up of that page. The real page stays open while you look at the other tabs. When online, real Twitch channel emotes are shown.",
   "youtube-chat":"'YouTube Chat' is the live YouTube room. It is the chat only, with no stream video and no stream audio. This is a mock up of that page. The real page stays open while you look at the other tabs.",
   "chat-bubbles":"'Chat Bubbles' shows 100 messages at a time. Latest, on the right, follows new lines. Start, on the left, shows the first 100 and stays still. This practice log uses a shorter window so the slider has somewhere to move. A short line is a small circle. A longer line grows so the time and the paragraph fit. On Windows the wheel zooms and the middle mouse drags. On Android, pinch to zoom and drag with two fingers. Right-click or long-press opens the name menu.",
+  highlights:"'Highlights' lists every practice line that matches a highlight word, oldest first. The name and the time stay on the row. taters starts highlighted in orange. The channel name is green while Highlight channel is on.",
   copied:"'Copied' is a scratch pad for a report. Delete works only here. The log itself is left alone. Two lines are already here: Granger’s crust, and Mithrandir’s timeout.",
   words:"'Words' takes a still picture when you open it. New lines do not move that picture. Leave and come back, or change All, Twitch, YouTube, How many, or Common words, and it takes another picture. Common words starts on, so ordinary words stay out. Click or tap a bubble for its lines. Right-click on Windows, or long-press on Android, to pin the newest line. On Windows the wheel zooms and the middle mouse drags. On Android, pinch to zoom and drag with two fingers.",
   setup:"'Setup' stores the rooms and the background on both apps. Graphics and the monitor flip are Windows only. Android turns with the device and can keep the screen on. Daily logs start on. White and Pink are the backgrounds that darken the purple 'Twitch' rows. 'YouTube' rows stay dark.",
@@ -543,6 +554,7 @@ function repaintHighlights(){
   $("savedLog").innerHTML = messages.map(m=>row(m,"")).join("");
   if (tab==="words") paintWords(false);
   if (tab==="chat-bubbles") paintChatBubbles();
+  if (tab==="highlights") paintHighlightHistory();
   if ($("userPanel").classList.contains("show")){
     const ids = [...$("userLog").querySelectorAll(".row")].map(item=>+item.dataset.id);
     $("userLog").innerHTML = ids.map(id=>messages.find(m=>m.id===id)).filter(Boolean).map(m=>row(m)).join("");
@@ -638,6 +650,16 @@ function paintLog(){
 function paintCopied(){
   $("copiedLog").innerHTML = copied.map((m,i)=>row(m, `<button type="button" data-del="${i}">Delete</button>`)).join("")
     || `<div class="note">Nothing copied yet.</div>`;
+}
+function paintHighlightHistory(){
+  const rules = activeRules();
+  const lines = messages.filter(m => highlightHits(m.user, rules).length || highlightHits(m.text, rules).length);
+  $("highlightStatus").textContent = lines.length
+    ? `${lines.length} highlight lines, oldest first.`
+    : "No highlight lines yet.";
+  $("highlightLog").innerHTML = lines.map(m=>row(m, "")).join("")
+    || `<div class="note">Lines that match a highlight word show up here, with the name and the time.</div>`;
+  $("highlightLog").scrollTop = $("highlightLog").scrollHeight;
 }
 function bubbleFill(t){
   const name = theme.toLowerCase();
@@ -1068,6 +1090,9 @@ function show(next){
   } else if (next==="copied"){
     document.querySelector('[data-page="copied"]').classList.add("show");
     paintCopied();
+  } else if (next==="highlights"){
+    document.querySelector('[data-page="highlights"]').classList.add("show");
+    paintHighlightHistory();
   } else if (next==="words"){
     document.querySelector('[data-page="words"]').classList.add("show");
     document.querySelector("#tabs button[data-tab='words']").classList.toggle("on", !wordUser);
@@ -1434,7 +1459,7 @@ $("chatCloud").addEventListener("click", e=>{
 });
 let screenDrag=null;
 function screenList(){
-  const list=["all","twitch","youtube","twitch-chat","youtube-chat","chat-bubbles","words"];
+  const list=["all","twitch","youtube","twitch-chat","youtube-chat","chat-bubbles","words","highlights"];
   userTabs.forEach(name=>list.push("user:"+name));
   if (savedDay) list.push("log-viewer");
   list.push("copied");
