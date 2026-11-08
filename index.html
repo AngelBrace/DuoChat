@@ -128,10 +128,10 @@ mark{background:orange;color:#111;border-radius:2px}
         <button type="button" data-tab="twitch-chat">Twitch Chat</button>
         <button type="button" data-tab="youtube-chat">YouTube Chat</button>
         <button type="button" data-tab="chat-bubbles">Chat Bubbles</button>
-        <button type="button" data-tab="copied">Copied</button>
         <button type="button" data-tab="words">Words</button>
         <span id="userTabs"></span>
         <span id="logTab"></span>
+        <button type="button" data-tab="copied">Copied</button>
       </div>
     </div>
     <div class="stage" id="stage">
@@ -238,11 +238,11 @@ mark{background:orange;color:#111;border-radius:2px}
   <div class="lessons">
     <article>
       <h2>Tabs</h2>
-      <p>All mixes both rooms by the clock. Twitch and YouTube each keep one room. Twitch Chat and YouTube Chat are the hidden live pages the app reads. They are not a second copy of the log. Chat Bubbles sits before Copied and packs recent messages into circles. Drag or swipe a screen left or right to pull the next one over. The row ends at the first and last tab. The same row is on Windows and Android.</p>
+      <p>All mixes both rooms by the clock. Twitch and YouTube each keep one room. Twitch Chat and YouTube Chat are the hidden live pages the app reads. They are not a second copy of the log. Chat Bubbles packs recent messages into circles. Copied is the last tab. Drag or swipe a screen left or right to pull the next one over. The row ends at the first and last tab. The same row is on Windows and Android.</p>
     </article>
     <article>
       <h2>A name</h2>
-      <p>On Windows, right-click Won_Won_99 on “IT TASTES LIKE SPACE AND PEPPERONI”. On Android, long-press that name. Chat lists only that nickname. Chat Commonalities lists lines that share a useful word. Words opens a Won_Won_99 Words tab. Copy puts that line on the scratch pad.</p>
+      <p>On Windows, right-click Won_Won_99 on “IT TASTES LIKE SPACE AND PEPPERONI”. On Android, long-press that name. Chat lists only that nickname. Shared/Paired lists lines that share a useful word. Words opens a Won_Won_99 Words tab. Copy puts that line on the scratch pad.</p>
     </article>
     <article>
       <h2>Words</h2>
@@ -933,7 +933,7 @@ function openUserWords(name){
 function openMenu(x,y,id,inCopied){
   const menu = $("menu");
   menu.dataset.id = id;
-  menu.innerHTML = ["Chat","Chat Commonalities","Words","Copy"].map(label=>`<button type="button" data-act="${label}">${label}</button>`).join("");
+  menu.innerHTML = ["Chat","Shared/Paired","Words","Copy"].map(label=>`<button type="button" data-act="${label}">${label}</button>`).join("");
   if (inCopied) menu.innerHTML += `<button type="button" data-act="Delete">Delete</button>`;
   menu.style.display = "block";
   menu.style.left = Math.min(x, innerWidth-210)+"px";
@@ -1057,7 +1057,7 @@ $("menu").onclick = e=>{
     $("userLog").innerHTML = messages.filter(m=>m.user.toLowerCase()===msg.user.toLowerCase()).map(m=>row(m)).join("");
     $("userPanel").classList.add("show");
     setStatus(`${$("userLog").children.length} lines from ${msg.user}.`);
-  } else if (act==="Chat Commonalities"){
+  } else if (act==="Shared/Paired"){
     const seeds = useful(msg.text);
     if (!seeds.length){ setStatus("No useful words in that line."); return; }
     const scopeNow = filter;
@@ -1163,9 +1163,10 @@ window.addEventListener("mouseup", e=>{
 $("bubbles").addEventListener("auxclick", e=>{ if (e.button===1) e.preventDefault(); });
 let screenDrag=null;
 function screenList(){
-  const list=["all","twitch","youtube","twitch-chat","youtube-chat","chat-bubbles","copied","words"];
+  const list=["all","twitch","youtube","twitch-chat","youtube-chat","chat-bubbles","words"];
   userTabs.forEach(name=>list.push("user:"+name));
   if (savedDay) list.push("log-viewer");
+  list.push("copied");
   return list;
 }
 function screenNow(){
