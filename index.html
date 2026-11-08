@@ -455,6 +455,7 @@ let highlightSounds = true;
 let highlightChannelNote = "No Sound";
 const NOTES = ["No Sound","Do","Re","Mi","Fa","So","La","Ti","High Do"];
 const PITCH = {Do:523.25,Re:587.33,Mi:659.25,Fa:698.46,So:783.99,La:880,Ti:987.77,"High Do":1046.5};
+const COLOR_NOTE = {Orange:"Do",Yellow:"Re",Green:"Mi",Aquamarine:"Fa","Light pink":"So",Purple:"La",Red:"Ti"};
 let bellCtx;
 function playBell(name){
   const freq = PITCH[name];
@@ -1177,6 +1178,7 @@ $("highlightColors").onclick = e=>{
   const color = e.target.dataset.color;
   if (!color) return;
   highlightPick = color;
+  if (highlightSounds) playBell(COLOR_NOTE[color] || "Do");
   paintHighlightList();
 };
 $("addHighlight").onclick = ()=>{
