@@ -14,6 +14,7 @@ html,body{margin:0;background:#07080c;color:#efeff1;font:14px/1.45 Segoe UI,syst
 h1{margin:0 0 8px;font-size:1.6rem;font-weight:650}
 .lead{margin:0 0 18px;max-width:72ch;color:#b8b8c0}
 .app{
+  --msg:14px;--row-pad:8px;
   height:760px;display:flex;flex-direction:column;background:var(--window);color:var(--text);
   border:1px solid var(--border);border-radius:14px;overflow:hidden;
   box-shadow:0 24px 70px rgba(0,0,0,.45)
@@ -43,7 +44,7 @@ input[type=search],input[type=range]{cursor:auto}
 .grow{flex:1}
 .log{flex:1;overflow:auto;padding:4px 2px 12px}
 .row{
-  margin:6px;padding:8px;border-radius:6px;border-left:3px solid transparent;
+  margin:6px;padding:var(--row-pad);border-radius:6px;border-left:3px solid transparent;
   display:flex;flex-wrap:wrap;gap:6px;align-items:center
 }
 .row.twitch{background:rgba(145,70,255,.13);border-left-color:#9370db}
@@ -52,15 +53,16 @@ input[type=search],input[type=range]{cursor:auto}
 .app.light-rows .row.twitch .msg,
 .app.light-rows .row.twitch .name{color:#1a1a1a}
 .app.light-rows .row.twitch .time{color:#4a4a4a}
-.time{color:var(--muted);font-size:12px}
-.icon{width:18px;height:18px;border-radius:3px;object-fit:cover;background:#444}
+.time{color:var(--muted);font-size:max(9px, calc(var(--msg) - 2px))}
+.icon{width:calc(var(--msg) * 18 / 14);height:calc(var(--msg) * 18 / 14);border-radius:3px;object-fit:cover;background:#444}
 .tag{font-size:11px;font-weight:700;letter-spacing:.03em;color:#bf94ff}
 .name{
   background:transparent;color:inherit;border:2px solid #7a7a86;border-radius:6px;
-  padding:1px 6px;font-weight:700
+  padding:1px 6px;font-weight:700;font-size:var(--msg)
 }
-.msg{color:#efeff1}
-.emoji{width:22px;height:22px;vertical-align:-6px;object-fit:contain}
+.msg{color:#efeff1;font-size:var(--msg)}
+.emoji{width:calc(var(--msg) * 22 / 14);height:calc(var(--msg) * 22 / 14);vertical-align:-6px;object-fit:contain}
+#messageFont{background:#101014;color:var(--text);border:1px solid var(--border);border-radius:8px;padding:4px 8px}
 .emoji.hit{outline:2px solid orange;border-radius:4px}
 .name .emoji{width:16px;height:16px;vertical-align:-3px}
 .app.light-rows .row.youtube .msg,
@@ -255,6 +257,18 @@ mark{background:orange;color:#111;border-radius:2px}
           </div>
         </div>
         <div class="note">
+          <strong>Message buttons</strong> are the rows in the logs. The message text starts at 14, and the time stays a little smaller. Up makes a row taller. Down makes it shorter. The sample matches every message, and the choice is remembered.
+          <div style="margin-top:8px;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+            <span>Text</span>
+            <select id="messageFont" aria-label="Message text size"></select>
+            <span>Height</span>
+            <button id="messageTaller" type="button" title="Taller">▲</button>
+            <button id="messageShorter" type="button" title="Shorter">▼</button>
+            <span id="messageHeightLabel" style="color:var(--muted)">8</span>
+          </div>
+          <div id="messageSample" style="margin-top:8px"></div>
+        </div>
+        <div class="note">
           <strong>Graphics</strong> is the Windows app. It starts at Normal: landscape, right side up. Those buttons turn the monitor DuoChat is on. Other windows on that monitor turn too. Portrait uses the swapped size. Android has no monitor flip. The phone or tablet turns itself, and 'Setup' can keep the screen on.
           <div class="swatches" id="turns"></div>
           <div class="swatches" id="sizes"></div>
@@ -285,6 +299,10 @@ mark{background:orange;color:#111;border-radius:2px}
     <article>
       <h2>Saved logs</h2>
       <p>'Setup' starts with Save daily logs checked. Open the practice day. The tab reads 'LogViewer' and the date, so it is obvious those rows are a saved file and not the live rooms. × closes that tab. On Windows, Open folder shows Documents\DuoChat\Logs. On Android, Open folder hands that day’s plain text to another app. Install a new Android copy over the app already on the phone. Logs, the scratch pad, and the saved rooms stay. Uninstalling the app removes that folder. If a chat tab stays blank, turn on 'Error Logs' in 'Setup'. The tab sits just before 'Copied'. Open it and take a screenshot.</p>
+    </article>
+    <article>
+      <h2>Message rows</h2>
+      <p>In 'Setup', Text sets the message size. It starts at 14, and the time stays a little smaller. Up makes a row taller. Down makes it shorter. The sample changes as you choose, and every message row follows. The choice is remembered.</p>
     </article>
   </div>
 </div>
@@ -426,7 +444,7 @@ const captions = {
   highlights:"'Highlights' lists every practice line that matches a highlight word, oldest first. The name and the time stay on the row. taters starts highlighted in orange. The channel name is green while Highlight channel is on.",
   copied:"'Copied' is a scratch pad for a report. Delete works only here. The log itself is left alone. Two lines are already here: Granger’s crust, and Mithrandir’s timeout.",
   words:"'Words' takes a still picture when you open it. New lines do not move that picture. Leave and come back, or change All, Twitch, YouTube, How many, or Common words, and it takes another picture. Common words starts on, so ordinary words stay out. Click or tap a bubble for its lines. Right-click on Windows, or long-press on Android, to pin the newest line. On Windows the wheel zooms and the middle mouse drags. On Android, pinch to zoom and drag with two fingers.",
-  setup:"'Setup' stores the rooms and the background on both apps. Graphics and the monitor flip are Windows only. Android turns with the device and can keep the screen on. Daily logs start on. White and Pink are the backgrounds that darken the purple 'Twitch' rows. 'YouTube' rows stay dark.",
+  setup:"'Setup' stores the rooms, the background, and the message rows on both apps. Message text starts at 14. Up makes a row taller and Down makes it shorter. The sample matches every message, and the choice is remembered. Graphics and the monitor flip are Windows only. Android turns with the device and can keep the screen on. Daily logs start on. White and Pink are the backgrounds that darken the purple 'Twitch' rows. 'YouTube' rows stay dark.",
   "log-viewer":"'LogViewer' plus the date is a saved file. 'All', 'Twitch', and 'YouTube' stay live. This practice day is 2026-11-07."
 };
 let tab = "all";
@@ -555,6 +573,7 @@ function repaintHighlights(){
   if (tab==="words") paintWords(false);
   if (tab==="chat-bubbles") paintChatBubbles();
   if (tab==="highlights") paintHighlightHistory();
+  paintMessageSample();
   if ($("userPanel").classList.contains("show")){
     const ids = [...$("userLog").querySelectorAll(".row")].map(item=>+item.dataset.id);
     $("userLog").innerHTML = ids.map(id=>messages.find(m=>m.id===id)).filter(Boolean).map(m=>row(m)).join("");
@@ -1186,6 +1205,39 @@ function setTabStep(step){
 $("tabSmaller").onclick = ()=>setTabStep(tabStep-1);
 $("tabNormal").onclick = ()=>setTabStep(2);
 $("tabLarger").onclick = ()=>setTabStep(tabStep+1);
+const messageFonts = [10,11,12,13,14,15,16,18,20,22,24,28];
+const messageHeights = [0,2,4,6,8,10,12,14,16,20,24,28,32];
+let messageFont = 14;
+let messageHeight = 8;
+$("messageFont").innerHTML = messageFonts.map(n=>`<option value="${n}"${n===messageFont?" selected":""}>${n}</option>`).join("");
+function paintMessageSample(){
+  const sample = messages.find(m=>/PEPPERONI/i.test(m.text)) || messages[0];
+  $("messageSample").innerHTML = sample ? row(sample, "") : "";
+}
+function applyMessageChrome(){
+  $("app").style.setProperty("--msg", messageFont + "px");
+  $("app").style.setProperty("--row-pad", messageHeight + "px");
+  $("messageHeightLabel").textContent = messageHeight;
+  $("messageTaller").disabled = messageHeight === messageHeights[messageHeights.length - 1];
+  $("messageShorter").disabled = messageHeight === messageHeights[0];
+}
+function nudgeMessageHeight(step){
+  const index = messageHeights.indexOf(messageHeight);
+  const next = Math.max(0, Math.min(messageHeights.length - 1, index + step));
+  if (next === index) return;
+  messageHeight = messageHeights[next];
+  applyMessageChrome();
+  setStatus("Message height is " + messageHeight + ".");
+}
+$("messageFont").onchange = ()=>{
+  messageFont = +$("messageFont").value;
+  applyMessageChrome();
+  setStatus("Message text is " + messageFont + ".");
+};
+$("messageTaller").onclick = ()=>nudgeMessageHeight(1);
+$("messageShorter").onclick = ()=>nudgeMessageHeight(-1);
+paintMessageSample();
+applyMessageChrome();
 const turns = [["Normal",0],["Portrait",90],["Upside down",180],["Portrait flipped",270]];
 const sizes = [["This monitor","0"],["1280×720","1280"],["1600×900","1600"],["1920×1080","1920"],["2560×1440","2560"]];
 let displayAngle = 0;
