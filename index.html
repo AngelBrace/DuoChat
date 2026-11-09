@@ -47,6 +47,7 @@ input[type=search],input[type=range]{cursor:auto}
   margin:6px;padding:var(--row-pad);border-radius:6px;border-left:3px solid transparent;
   display:flex;flex-wrap:wrap;gap:6px;align-items:center
 }
+.row.source{outline:2px solid #ffa500;outline-offset:-2px}
 .row.twitch{background:rgba(145,70,255,.13);border-left-color:#9370db}
 .row.youtube{background:#1a1a1a;border-left-color:#e53935}
 .app.light-rows .row.twitch,
@@ -78,6 +79,7 @@ mark{background:orange;color:#111;border-radius:2px}
 .browser header{background:#202028;color:var(--muted);padding:8px 12px;font-size:12px}
 .browser .body{padding:28px}
 .words{flex:1;position:relative;overflow:hidden;min-height:0;touch-action:none}
+#logChatPage,#logWordsPage{flex:1;min-height:0;flex-direction:column}
 .words.grabbing,.words.grabbing *{cursor:move}
 .cloud{position:absolute;inset:0}
 .slot{position:absolute}
@@ -132,7 +134,7 @@ mark{background:orange;color:#111;border-radius:2px}
         <button type="button" data-tab="twitch-chat">Twitch Chat</button>
         <button type="button" data-tab="youtube-chat">YouTube Chat</button>
         <button type="button" data-tab="chat-bubbles">Chat Bubbles</button>
-        <button type="button" data-tab="words">Words</button>
+        <button type="button" data-tab="words">Word Bubbles</button>
         <button type="button" data-tab="highlights">Highlights</button>
         <span id="userTabs"></span>
         <span id="logTab"></span>
@@ -206,7 +208,7 @@ mark{background:orange;color:#111;border-radius:2px}
           <button type="button" data-scope="twitch">Twitch</button>
           <button type="button" data-scope="youtube">YouTube</button>
           <span>How many</span>
-          <input id="limit" type="range" min="10" max="80" value="40" aria-label="How many words"/>
+          <input id="limit" type="range" min="10" max="1000" value="40" aria-label="How many words"/>
           <label class="check"><input id="common" type="checkbox" checked/> Common words</label>
           <label class="check"><input id="messages" type="checkbox" checked/> Messages</label>
           <span id="wordStatus"></span>
@@ -224,7 +226,20 @@ mark{background:orange;color:#111;border-radius:2px}
             <div>Saved log. This is not live chat.</div>
           </div>
         </div>
+        <div class="tool">
+          <button type="button" id="logLines">Lines</button>
+          <button type="button" id="logChat">Chat Bubbles</button>
+          <button type="button" id="logWords">Word Bubbles</button>
+        </div>
         <div class="log" id="savedLog"></div>
+        <div id="logChatPage" style="display:none">
+          <div class="tool"><span id="logChatStatus"></span></div>
+          <div class="words" id="logChatCloud"></div>
+        </div>
+        <div id="logWordsPage" style="display:none">
+          <div class="tool"><span id="logWordStatus"></span></div>
+          <div class="words" id="logWordCloud"></div>
+        </div>
       </section>
       <section class="page" data-page="setup">
         <div class="note"><strong>Setup</strong> remembers the Twitch channel, the YouTube video, and the window size. The color buttons change the window. Chat rows keep their own colors.</div>
@@ -246,6 +261,15 @@ mark{background:orange;color:#111;border-radius:2px}
           <div id="savedDays" style="margin:8px 0"></div>
           <button id="openLog" type="button">Open</button>
           <button id="openFolder" type="button">Open folder</button>
+        </div>
+        <div class="note">
+          <strong>Past Twitch chat</strong> is Windows. Paste a VOD, highlight, or clip link. Leave the times blank for the whole chat, or set a start and an end. Fetch opens that chat in LogViewer and saves it beside the daily logs. It is not added to today's live chat. Cancel stops the walk.
+        </div>
+        <div class="note">
+          <strong>Word bubbles page</strong> is Windows. DuoChat-Word-Bubbles.html sits next to DuoChat.exe. Internal opens it in this window. External opens it in the browser. Choose File starts in Documents\DuoChat\Logs. Common Words Filter reads CommonWords.json from that same folder.
+        </div>
+        <div class="note">
+          <strong>Emotes</strong> on Windows are kept under Documents\DuoChat\Emotes. The first time a picture is seen, DuoChat stores it under its original name. Later views use that file. The daily log still keeps the original address.
         </div>
         <div class="note">
           <strong>Tab buttons</strong> are 'All', 'Twitch', 'YouTube', 'Copied', and the other tabs on that row. They start at the current size. 'Setup' and the other buttons stay as they are.
@@ -282,23 +306,23 @@ mark{background:orange;color:#111;border-radius:2px}
   <div class="lessons">
     <article>
       <h2>Tabs</h2>
-      <p>'All' mixes both rooms by the clock. 'Twitch' and 'YouTube' each keep one room. 'Twitch Chat' and 'YouTube Chat' are the live chat rooms. They show the chat only, with no stream video and no stream audio, and they stay open while you look at the log. They are not a second copy of the log. 'Chat Bubbles' shows 100 messages as circles. Latest, on the right, follows new lines. Start, on the left, shows the first 100 and stays still. 'Highlights' keeps the lines that matched a highlight word, oldest first, with the name and the time. 'Copied' is the last tab. On Android, 'Setup' can show an 'Error Logs' tab just before 'Copied'. That tab stays out of the row until the switch is on. Drag or swipe a screen left or right to pull the next one over. The row ends at the first and last tab.</p>
+      <p>'All' mixes both rooms by the clock. 'Twitch' and 'YouTube' each keep one room. 'Twitch Chat' and 'YouTube Chat' are the live chat rooms. They show the chat only, with no stream video and no stream audio, and they stay open while you look at the log. They are not a second copy of the log. 'Chat Bubbles' shows up to 1000 messages as circles. Latest, on the right, follows new lines. Start, on the left, shows the first 1000 and stays still. 'Word Bubbles' packs the top words, from 40 up to 1000. 'Highlights' keeps the lines that matched a highlight word, oldest first, with the name and the time. 'Copied' is the last tab. On Android, 'Setup' can show an 'Error Logs' tab just before 'Copied'. That tab stays out of the row until the switch is on. Drag or swipe a screen left or right to pull the next one over. The row ends at the first and last tab.</p>
     </article>
     <article>
       <h2>A name</h2>
-      <p>On Windows, right-click Won_Won_99 on “IT TASTES LIKE SPACE AND PEPPERONI”. On Android, long-press that name. Chat lists only that nickname. Shared/Paired lists lines that share a useful word. Words opens a 'Won_Won_99 Words' tab. Copy puts that line on the scratch pad.</p>
+      <p>On Windows, right-click Won_Won_99 on “IT TASTES LIKE SPACE AND PEPPERONI”. On Android, long-press that name. Chat lists only that nickname. Shared/Paired lists lines that share a useful word. The panel title starts with Shared/Paired, and the original line keeps an orange outline. Word Bubbles opens a 'Won_Won_99 Words' tab. Copy puts that line on the scratch pad.</p>
     </article>
     <article>
-      <h2>Words</h2>
-      <p>Opening 'Words' takes a still picture of the chat so far. New lines do not move it. Leave and come back, or change All, Twitch, YouTube, How many, or Common words, and it takes another picture. On Windows, right-click taters to pin “what is taters?!”. On Android, long-press that bubble. Click or tap the note. A smaller note appears on tater, and on the slow-mode line, because that line contains tater. A message already on screen is not added again. × on a branch closes that branch. × on the first note, another right-click or long-press, or Esc or Back, closes the tree. The Windows wheel zooms and the middle mouse drags. Android pinches to zoom and uses two fingers to drag.</p>
+      <h2>Word Bubbles</h2>
+      <p>Opening 'Word Bubbles' takes a still picture of the chat so far. How many starts at 40 and goes up to 1000. New lines do not move it. Leave and come back, or change All, Twitch, YouTube, How many, or Common words, and it takes another picture. On Windows, right-click taters to pin “what is taters?!”. On Android, long-press that bubble. Click or tap the note. A smaller note appears on tater, and on the slow-mode line, because that line contains tater. A message already on screen is not added again. × on a branch closes that branch. × on the first note, another right-click or long-press, or Esc or Back, closes the tree. The Windows wheel zooms and the middle mouse drags. Zoomed in, circles outside the window are skipped. Android pinches to zoom and uses two fingers to drag.</p>
     </article>
     <article>
       <h2>One person</h2>
-      <p>The 'Smeagol_Raw_And_Wriggling Words' tab can be closed with ×. The main 'Words' tab stays. Turn Common words off on a nickname tab to count every word that person used, including short ones such as “the”.</p>
+      <p>The 'Smeagol_Raw_And_Wriggling Words' tab can be closed with ×. The main 'Word Bubbles' tab stays. Turn Common words off on a nickname tab to count every word that person used, including short ones such as “the”.</p>
     </article>
     <article>
       <h2>Saved logs</h2>
-      <p>'Setup' starts with Save daily logs checked. Open the practice day. The tab reads 'LogViewer' and the date, so it is obvious those rows are a saved file and not the live rooms. × closes that tab. On Windows, Open folder shows Documents\DuoChat\Logs. On Android, Open folder hands that day’s plain text to another app. Install a new Android copy over the app already on the phone. Logs, the scratch pad, and the saved rooms stay. Uninstalling the app removes that folder. If a chat tab stays blank, turn on 'Error Logs' in 'Setup'. The tab sits just before 'Copied'. Open it and take a screenshot.</p>
+      <p>'Setup' starts with Save daily logs checked. Open the practice day. The tab reads 'LogViewer' and the date, so it is obvious those rows are a saved file and not the live rooms. Lines, Chat Bubbles, and Word Bubbles on that page pack this snapshot. × closes the tab and those views. Today's 'Chat Bubbles' and 'Word Bubbles' stay on the live rooms. On Windows, Open folder shows Documents\DuoChat\Logs. On Android, Open folder hands that day’s plain text to another app. A VOD, highlight, or clip link in 'Setup' also opens in LogViewer. Install a new Android copy over the app already on the phone. Logs, the scratch pad, and the saved rooms stay. Uninstalling the app removes that folder. If a chat tab stays blank, turn on 'Error Logs' in 'Setup'. The tab sits just before 'Copied'. Open it and take a screenshot.</p>
     </article>
     <article>
       <h2>Message rows</h2>
@@ -440,12 +464,12 @@ const captions = {
   youtube:"'YouTube' keeps the dark rows with the red edge. This room is the potato argument.",
   "twitch-chat":"'Twitch Chat' is the live Twitch room. It is the chat only, with no stream video and no stream audio. This is a mock up of that page. The real page stays open while you look at the other tabs. When online, real Twitch channel emotes are shown.",
   "youtube-chat":"'YouTube Chat' is the live YouTube room. It is the chat only, with no stream video and no stream audio. This is a mock up of that page. The real page stays open while you look at the other tabs.",
-  "chat-bubbles":"'Chat Bubbles' shows 100 messages at a time. Latest, on the right, follows new lines. Start, on the left, shows the first 100 and stays still. This practice log uses a shorter window so the slider has somewhere to move. A short line is a small circle. A longer line grows so the time and the paragraph fit. On Windows the wheel zooms and the middle mouse drags. On Android, pinch to zoom and drag with two fingers. Right-click or long-press opens the name menu.",
+  "chat-bubbles":"'Chat Bubbles' shows up to 1000 messages at a time. Latest, on the right, follows new lines. Start, on the left, shows the first 1000 and stays still. This practice log uses a shorter window so the slider has somewhere to move. A short line is a small circle. A longer line grows so the time and the paragraph fit. On Windows the wheel zooms and the middle mouse drags. Zoomed in, circles outside the window are skipped. On Android, pinch to zoom and drag with two fingers. Right-click or long-press opens the name menu.",
   highlights:"'Highlights' lists every practice line that matches a highlight word, oldest first. The name and the time stay on the row. taters starts highlighted in orange. The channel name is green while Highlight channel is on.",
   copied:"'Copied' is a scratch pad for a report. Delete works only here. The log itself is left alone. Two lines are already here: Granger’s crust, and Mithrandir’s timeout.",
-  words:"'Words' takes a still picture when you open it. New lines do not move that picture. Leave and come back, or change All, Twitch, YouTube, How many, or Common words, and it takes another picture. Common words starts on, so ordinary words stay out. Click or tap a bubble for its lines. Right-click on Windows, or long-press on Android, to pin the newest line. On Windows the wheel zooms and the middle mouse drags. On Android, pinch to zoom and drag with two fingers.",
+  words:"'Word Bubbles' takes a still picture when you open it. How many starts at 40 and goes up to 1000. New lines do not move that picture. Leave and come back, or change All, Twitch, YouTube, How many, or Common words, and it takes another picture. Common words starts on, so ordinary words stay out. Click or tap a bubble for its lines. Right-click on Windows, or long-press on Android, to pin the newest line. On Windows the wheel zooms and the middle mouse drags. Zoomed in, circles outside the window are skipped. On Android, pinch to zoom and drag with two fingers.",
   setup:"'Setup' stores the rooms, the background, and the message rows on both apps. Message text starts at 14. Up makes a row taller and Down makes it shorter. The sample matches every message, and the choice is remembered. Graphics and the monitor flip are Windows only. Android turns with the device and can keep the screen on. Daily logs start on. White and Pink are the backgrounds that darken the purple 'Twitch' rows. 'YouTube' rows stay dark.",
-  "log-viewer":"'LogViewer' plus the date is a saved file. 'All', 'Twitch', and 'YouTube' stay live. This practice day is 2026-11-07."
+  "log-viewer":"'LogViewer' plus the date is a saved file. Lines, Chat Bubbles, and Word Bubbles on this page pack that file. × closes the page and those views. 'All', 'Twitch', and 'YouTube' stay live. This practice day is 2026-11-07."
 };
 let tab = "all";
 let filter = "all";
@@ -454,6 +478,8 @@ let wordUser = "";
 let userTabs = ["Smeagol_Raw_And_Wriggling"];
 let theme = "Dark";
 let savedDay = "";
+let logMode = "lines";
+let sharedSource = 0;
 const practiceDay = "2026-11-07";
 let notes = [];
 let nextNote = 1;
@@ -624,7 +650,8 @@ function row(m, extra="", q=""){
     ? `${m.badge==="MOD"?'<span class="tag">MOD</span>':""}<button class="name" type="button" data-id="${m.id}"${nameTone?` style="background:${nameTone.fill};color:${nameTone.ink}"`:""}>${paintText(m.user, q)}</button>`
     : `<span class="name">${rich(badgeLabel[m.badge]||m.badge||m.user||"")}</span>`;
   const body = m.badge==="LIVE" ? esc(m.user) : rich(m.text, q);
-  return `<article class="row ${m.platform}" data-id="${m.id}">${icon(m)}<span class="time">${m.time}</span>${who}<span class="msg">${body}</span>${extra}</article>`;
+  const source = m.id===sharedSource ? " source" : "";
+  return `<article class="row ${m.platform}${source}" data-id="${m.id}">${icon(m)}<span class="time">${m.time}</span>${who}<span class="msg">${body}</span>${extra}</article>`;
 }
 function logSource(){
   if (filter==="twitch") return messages.filter(m=>m.platform==="twitch");
@@ -997,10 +1024,86 @@ function paintSavedDays(){
 }
 function openSavedLog(){
   savedDay = practiceDay;
+  logMode = "lines";
   $("logViewerTitle").textContent = `LogViewer ${savedDay}`;
   $("savedLog").innerHTML = messages.map(m=>row(m,"")).join("");
   show("log-viewer");
   setStatus(`LogViewer ${savedDay}. ${messages.length} saved lines. This is not live chat.`);
+}
+function paintLogMode(){
+  $("logLines").classList.toggle("on", logMode==="lines");
+  $("logChat").classList.toggle("on", logMode==="chat");
+  $("logWords").classList.toggle("on", logMode==="words");
+  $("savedLog").style.display = logMode==="lines" ? "" : "none";
+  $("logChatPage").style.display = logMode==="chat" ? "flex" : "none";
+  $("logWordsPage").style.display = logMode==="words" ? "flex" : "none";
+  if (logMode==="chat") paintLogChat();
+  if (logMode==="words") paintLogWords();
+}
+function fitSlots(host, circles, html){
+  host.innerHTML = html;
+  requestAnimationFrame(()=>{
+    const width = host.clientWidth, height = host.clientHeight;
+    if (width<20 || height<20 || !circles.length) return;
+    let minX=Infinity, minY=Infinity, maxX=-Infinity, maxY=-Infinity;
+    circles.forEach(circle=>{
+      minX=Math.min(minX, circle.x-circle.r);
+      minY=Math.min(minY, circle.y-circle.r);
+      maxX=Math.max(maxX, circle.x+circle.r);
+      maxY=Math.max(maxY, circle.y+circle.r);
+    });
+    const scale = Math.min((width-32)/Math.max(1,maxX-minX), (height-32)/Math.max(1,maxY-minY));
+    const camX = (width-(minX+maxX)*scale)/2;
+    const camY = (height-(minY+maxY)*scale)/2;
+    host.querySelectorAll(".slot").forEach(slot=>{
+      const circle = circles[+slot.dataset.i];
+      if (!circle) return;
+      const size = circle.r*2*scale;
+      slot.style.left = (camX+(circle.x-circle.r)*scale)+"px";
+      slot.style.top = (camY+(circle.y-circle.r)*scale)+"px";
+      slot.style.width = slot.style.height = size+"px";
+    });
+  });
+}
+function paintLogChat(){
+  const total = messages.length;
+  const pool = messages.slice(Math.max(0, total-CHAT_WINDOW));
+  const packed = packCircles(pool.slice().sort((a,b)=>a.text.length-b.text.length||a.time.localeCompare(b.time)).map(msg=>({label:msg.user, n:msg.text.length, msg})));
+  $("logChatStatus").textContent = `${pool.length} messages from this saved log`;
+  const html = `<div class="cloud">${packed.map((circle,index)=>{
+    const msg = circle.item.msg;
+    const fill = msg.platform==="twitch" ? "#4a2f78" : "#1a1a1a";
+    const edge = msg.platform==="twitch" ? "#9370db" : "#e53935";
+    return `<div class="slot" data-i="${index}"><button class="bubble" type="button" data-logchat="${msg.id}" style="width:100%;height:100%;background:${fill};color:#fff;border-color:${edge}">${esc(msg.user)}</button></div>`;
+  }).join("")}</div>`;
+  fitSlots($("logChatCloud"), packed, packed.length ? html : `<div class="note">No messages in this view.</div>`);
+}
+function paintLogWords(){
+  const hide = true;
+  const counts = new Map();
+  messages.forEach(m=>{
+    tokens(m.text, false).forEach(({key,raw})=>{
+      if (hide && (key.length<4 || STOP.has(key))) return;
+      const rec = counts.get(key)||{n:0,label:raw,best:0,lines:[]};
+      rec.n++;
+      const spells = rec.label.toLowerCase()===raw.toLowerCase() ? rec.best+1 : 1;
+      if (spells>rec.best){ rec.best=spells; rec.label=raw; }
+      if (!rec.lines.includes(m)) rec.lines.push(m);
+      counts.set(key, rec);
+    });
+  });
+  const ranked = [...counts.values()].sort((a,b)=>b.n-a.n||a.label.localeCompare(b.label)).slice(0,40);
+  const rareFirst = [...ranked].sort((a,b)=>a.n-b.n||a.label.localeCompare(b.label));
+  const packed = packCircles(rareFirst);
+  $("logWordStatus").textContent = `${messages.length} msgs · ${counts.size} Words`;
+  const span = Math.max(1, packed.length-1);
+  const html = `<div class="cloud">${packed.map((circle,index)=>{
+    const fill = bubbleFill(packed.length===1?1:(circle.rank-1)/span);
+    const ink = labelColor(fill);
+    return `<div class="slot" data-i="${index}"><button class="bubble" type="button" data-logword="${esc(circle.item.label.toLowerCase())}" style="width:100%;height:100%;background:${fill};color:${ink}">${esc(circle.item.label)}</button></div>`;
+  }).join("")}</div>`;
+  window._logWords = packed.map(circle=>({key:circle.item.label.toLowerCase(), n:circle.item.n, lines:circle.item.lines}));
+  fitSlots($("logWordCloud"), packed, packed.length ? html : `<div class="note">No words in this view.</div>`);
 }
 let chatCamX=0, chatCamY=0, chatCamScale=1, chatFitScale=1, chatViewCustom=false;
 let chatDrag=null;
@@ -1122,6 +1225,7 @@ function show(next){
     paintSavedDays();
   } else if (next==="log-viewer"){
     document.querySelector('[data-page="log-viewer"]').classList.add("show");
+    paintLogMode();
   } else {
     filter = next;
     document.querySelector('[data-page="log"]').classList.add("show");
@@ -1129,7 +1233,7 @@ function show(next){
     setStatus(`${logSource().length} messages`);
   }
   $("caption").textContent = next==="words" && wordUser
-    ? `${wordUser} Words counts only that nickname. All, Twitch, and YouTube still limit the room. × closes this tab. Words itself stays.`
+    ? `${wordUser} Words counts only that nickname. All, Twitch, and YouTube still limit the room. × closes this tab. Word Bubbles itself stays.`
     : captions[next]||"";
   paintUserTabs();
   paintLogTab();
@@ -1147,7 +1251,7 @@ function openUserWords(name){
 function openMenu(x,y,id,inCopied){
   const menu = $("menu");
   menu.dataset.id = id;
-  menu.innerHTML = ["Chat","Shared/Paired","Words","Copy"].map(label=>`<button type="button" data-act="${label}">${label}</button>`).join("");
+  menu.innerHTML = ["Chat","Shared/Paired","Word Bubbles","Copy"].map(label=>`<button type="button" data-act="${label}">${label}</button>`).join("");
   if (inCopied) menu.innerHTML += `<button type="button" data-act="Delete">Delete</button>`;
   menu.style.display = "block";
   menu.style.left = Math.min(x, innerWidth-210)+"px";
@@ -1174,6 +1278,7 @@ const userJump = {n:-1, dir:1};
 $("tabs").onclick = e=>{
   if (e.target.dataset.closeLog){
     savedDay = "";
+    logMode = "lines";
     show(tab==="log-viewer" ? "all" : tab);
     return;
   }
@@ -1353,6 +1458,7 @@ $("menu").onclick = e=>{
   $("menu").style.display = "none";
   if (!msg || !act) return;
   if (act==="Chat"){
+    sharedSource = 0;
     if (!["all","twitch","youtube"].includes(tab)) show("all");
     $("userTitle").textContent = msg.user;
     $("userLog").innerHTML = messages.filter(m=>m.user.toLowerCase()===msg.user.toLowerCase()).map(m=>row(m)).join("");
@@ -1372,11 +1478,15 @@ $("menu").onclick = e=>{
       shared.forEach(seed=>{ if (m.id!==msg.id && !used.includes(seed)) used.push(seed); });
       return true;
     });
-    $("userTitle").textContent = used.join(" · ") || "No other matches";
+    const words = used.join(" · ") || "No other matches";
+    sharedSource = msg.id;
+    $("userTitle").textContent = "Shared/Paired · " + words;
     $("userLog").innerHTML = lines.map(m=>row(m)).join("");
     $("userPanel").classList.add("show");
-    setStatus(`${lines.length} lines share ${$("userTitle").textContent}.`);
-  } else if (act==="Words"){
+    const hit = [...$("userLog").querySelectorAll("article")].find(node=>+node.dataset.id===msg.id);
+    if (hit) hit.scrollIntoView({block:"center"});
+    setStatus(`${lines.length} lines share ${used.join(" · ") || "those words"}.`);
+  } else if (act==="Word Bubbles"){
     openUserWords(msg.user);
   } else if (act==="Copy"){
     if (!copied.includes(msg)) copied.push(msg);
@@ -1388,7 +1498,22 @@ $("menu").onclick = e=>{
     show("copied");
   }
 };
-$("closeUser").onclick = ()=>$("userPanel").classList.remove("show");
+$("closeUser").onclick = ()=>{ sharedSource = 0; $("userPanel").classList.remove("show"); };
+$("logLines").onclick = ()=>{ logMode = "lines"; paintLogMode(); };
+$("logChat").onclick = ()=>{ logMode = "chat"; paintLogMode(); };
+$("logWords").onclick = ()=>{ logMode = "words"; paintLogMode(); };
+$("logChatCloud").onclick = e=>{
+  const id = e.target.closest("[data-logchat]")?.dataset.logchat;
+  if (id==null) return;
+  const msg = messages.find(item=>item.id===+id);
+  if (msg) setStatus(`${msg.user} · ${msg.time}`);
+};
+$("logWordCloud").onclick = e=>{
+  const key = e.target.closest("[data-logword]")?.dataset.logword;
+  if (!key) return;
+  const bubble = (window._logWords||[]).find(item=>item.key===key);
+  if (bubble) setStatus(`${bubble.lines.length} lines contain ${key}.`);
+};
 $("copiedLog").onclick = e=>{
   if (e.target.dataset.del==null) return;
   copied.splice(+e.target.dataset.del,1);
