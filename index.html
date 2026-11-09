@@ -312,7 +312,7 @@ mark{background:orange;color:#111;border-radius:2px}
     </article>
     <article>
       <h2>A name</h2>
-      <p>On Windows, right-click Won_Won_99 on “IT TASTES LIKE SPACE AND PEPPERONI”. On Android, long-press that name. Chat lists only that nickname. Shared/Paired lists lines that share a useful word. The panel title starts with Shared/Paired, and the original line keeps an orange outline. Word Bubbles opens a 'Won_Won_99 Words' tab. Copy puts that line on the scratch pad.</p>
+      <p>On Windows, right-click Won_Won_99 on “IT TASTES LIKE SPACE AND PEPPERONI”. On Android, long-press that name. Chat lists only that nickname. Shared/Paired lists lines that share a useful word. The panel title starts with Shared/Paired, and the original line keeps an orange outline. Click a message row to select it, and that same orange outline stays on the selected row. Word Bubbles opens a 'Won_Won_99 Words' tab. Copy puts that line on the scratch pad.</p>
     </article>
     <article>
       <h2>Word Bubbles</h2>
@@ -481,7 +481,8 @@ let userTabs = ["Smeagol_Raw_And_Wriggling"];
 let theme = "Dark";
 let savedDay = "";
 let logMode = "lines";
-let sharedSource = 0;
+let sharedSource = -1;
+let selectedMessage = -1;
 const practiceDay = "2026-11-07";
 let notes = [];
 let nextNote = 1;
@@ -652,7 +653,7 @@ function row(m, extra="", q=""){
     ? `${m.badge==="MOD"?'<span class="tag">MOD</span>':""}<button class="name" type="button" data-id="${m.id}"${nameTone?` style="background:${nameTone.fill};color:${nameTone.ink}"`:""}>${paintText(m.user, q)}</button>`
     : `<span class="name">${rich(badgeLabel[m.badge]||m.badge||m.user||"")}</span>`;
   const body = m.badge==="LIVE" ? esc(m.user) : rich(m.text, q);
-  const source = m.id===sharedSource ? " source" : "";
+  const source = m.id===sharedSource || m.id===selectedMessage ? " source" : "";
   return `<article class="row ${m.platform}${source}" data-id="${m.id}">${icon(m)}<span class="time">${m.time}</span>${who}<span class="msg">${body}</span>${extra}</article>`;
 }
 function logSource(){
@@ -1460,11 +1461,13 @@ $("menu").onclick = e=>{
   $("menu").style.display = "none";
   if (!msg || !act) return;
   if (act==="Chat"){
-    sharedSource = 0;
+    sharedSource = -1;
+    selectedMessage = msg.id;
     if (!["all","twitch","youtube"].includes(tab)) show("all");
     $("userTitle").textContent = msg.user;
     $("userLog").innerHTML = messages.filter(m=>m.user.toLowerCase()===msg.user.toLowerCase()).map(m=>row(m)).join("");
     $("userPanel").classList.add("show");
+    markRows();
     setStatus(`${$("userLog").children.length} lines from ${msg.user}.`);
   } else if (act==="Shared/Paired"){
     const seeds = useful(msg.text);
@@ -1482,11 +1485,13 @@ $("menu").onclick = e=>{
     });
     const words = used.join(" · ") || "No other matches";
     sharedSource = msg.id;
+    selectedMessage = msg.id;
     $("userTitle").textContent = "Shared/Paired · " + words;
     $("userLog").innerHTML = lines.map(m=>row(m)).join("");
     $("userPanel").classList.add("show");
     const hit = [...$("userLog").querySelectorAll("article")].find(node=>+node.dataset.id===msg.id);
     if (hit) hit.scrollIntoView({block:"center"});
+    markRows();
     setStatus(`${lines.length} lines share ${used.join(" · ") || "those words"}.`);
   } else if (act==="Word Bubbles"){
     openUserWords(msg.user);
@@ -1500,7 +1505,20 @@ $("menu").onclick = e=>{
     show("copied");
   }
 };
-$("closeUser").onclick = ()=>{ sharedSource = 0; $("userPanel").classList.remove("show"); };
+$("closeUser").onclick = ()=>{ sharedSource = -1; markRows(); $("userPanel").classList.remove("show"); };
+function markRows(){
+  document.querySelectorAll("article.row").forEach(row=>{
+    const id = +row.dataset.id;
+    row.classList.toggle("source", id===selectedMessage || id===sharedSource);
+  });
+}
+document.addEventListener("click", e=>{
+  if (e.target.closest("#menu") || e.target.closest("[data-del]")) return;
+  const row = e.target.closest("article.row");
+  if (!row) return;
+  selectedMessage = +row.dataset.id;
+  markRows();
+});
 $("logLines").onclick = ()=>{ logMode = "lines"; paintLogMode(); };
 $("logChat").onclick = ()=>{ logMode = "chat"; paintLogMode(); };
 $("logWords").onclick = ()=>{ logMode = "words"; paintLogMode(); };
