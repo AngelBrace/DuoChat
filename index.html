@@ -22,8 +22,9 @@ h1{margin:0 0 8px;font-size:1.6rem;font-weight:650}
 .chrome{background:var(--bar);padding:10px 12px 8px;border-bottom:1px solid var(--border)}
 .brand{display:flex;align-items:center;justify-content:space-between;font-weight:700}
 .tabs{display:flex;gap:4px;align-items:center;margin-top:8px;overflow:auto}
-.tabs button{flex:none}
-.user-tab{display:inline-flex;gap:2px;align-items:center;flex:none}
+.tabs > button,.tabs > span,.user-tab{flex:none}
+.user-tab{display:inline-flex;gap:2px;align-items:center}
+button.tab-close{margin:0}
 button,input,select{
   font:inherit;color:#111;background:#ececf1;border:1px solid #6e6e78;border-radius:6px;
   padding:3px 6px;cursor:pointer
@@ -996,27 +997,27 @@ function closeBranch(id){
 }
 let tabStep = 2;
 const tabLooks = [
-  {name:"Smaller", font:"11px", pad:"2px 7px"},
-  {name:"Small", font:"12px", pad:"3px 8px"},
-  {name:"Normal", font:"", pad:""},
-  {name:"Large", font:"16px", pad:"6px 13px"},
-  {name:"Larger", font:"18px", pad:"8px 16px"}
+  {name:"Smaller", font:"11px", pad:"2px 7px", close:"2px 6px"},
+  {name:"Small", font:"12px", pad:"3px 8px", close:"3px 6px"},
+  {name:"Normal", font:"13px", pad:"3px 6px", close:"3px 6px"},
+  {name:"Large", font:"16px", pad:"6px 13px", close:"6px 10px"},
+  {name:"Larger", font:"18px", pad:"8px 16px", close:"8px 12px"}
 ];
 function applyTabLook(){
   const look = tabLooks[tabStep];
   document.querySelectorAll("#tabs button").forEach(b=>{
     b.style.fontSize = look.font;
-    b.style.padding = look.pad;
+    b.style.padding = b.classList.contains("tab-close") ? look.close : look.pad;
   });
   $("tabSizeLabel").textContent = look.name;
 }
 function paintUserTabs(){
-  $("userTabs").innerHTML = userTabs.map(name=>`<span class="user-tab"><button type="button" data-tab="user" data-user="${esc(name)}" class="${tab==="words"&&wordUser.toLowerCase()===name.toLowerCase()?"on":""}">${esc(name)} Words</button><button class="tiny" type="button" data-close="${esc(name)}" title="Close ${esc(name)} Words">×</button></span>`).join("");
+  $("userTabs").innerHTML = userTabs.map(name=>`<span class="user-tab"><button type="button" data-tab="user" data-user="${esc(name)}" class="${tab==="words"&&wordUser.toLowerCase()===name.toLowerCase()?"on":""}">${esc(name)} Words</button><button class="tab-close" type="button" data-close="${esc(name)}" title="Close ${esc(name)} Words">×</button></span>`).join("");
   applyTabLook();
 }
 function paintLogTab(){
   $("logTab").innerHTML = savedDay
-    ? `<span class="user-tab"><button type="button" data-tab="log-viewer" class="${tab==="log-viewer"?"on":""}">LogViewer ${savedDay}</button><button class="tiny" type="button" data-close-log="1" title="Close LogViewer">×</button></span>`
+    ? `<span class="user-tab"><button type="button" data-tab="log-viewer" class="${tab==="log-viewer"?"on":""}">LogViewer ${savedDay}</button><button class="tab-close" type="button" data-close-log="1" title="Close LogViewer">×</button></span>`
     : "";
   applyTabLook();
 }
