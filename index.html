@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>DuoChat 1.0</title>
+<title>DuoChat 2.0</title>
 <style>
 :root{
   --window:#0e0e10;--bar:#18181b;--text:#efeff1;--muted:#aaaaaa;--border:#2f2f35;
@@ -21,15 +21,44 @@ h1{margin:0 0 8px;font-size:1.6rem;font-weight:650}
   border:1px solid var(--border);border-radius:14px;overflow:hidden;
   box-shadow:0 24px 70px rgba(0,0,0,.45)
 }
-.chrome{background:var(--bar);padding:10px 12px 8px;border-bottom:1px solid var(--border)}
-.brand{display:flex;align-items:center;justify-content:space-between;font-weight:700}
-.tabs{display:flex;gap:4px;align-items:center;margin-top:8px;overflow:auto}
+.chrome{background:var(--bar);padding:8px 10px;border-bottom:1px solid var(--border);display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center}
+.brand{display:flex;align-items:center;gap:6px;font-weight:700;flex:none;white-space:nowrap;margin-left:auto}
+.brand .title{font-size:14px;margin-right:4px}
+.brand .label{font-weight:400;color:var(--muted);font-size:12px}
+.brand button,.brand input,.brand select{font-size:12px}
+.brand input{width:84px;background:#101014;color:var(--text);border-color:var(--border)}
+.brand select{background:#101014;color:var(--text);border-color:var(--border)}
+.tabs{display:flex;gap:3px;align-items:center;flex-wrap:nowrap;flex:1 1 100%;min-width:0;white-space:nowrap}
+.tabs.wrap{flex-wrap:wrap}
+.tabs > span{display:inline-flex;gap:3px}
+.lastchat{display:none;margin:0;padding:6px 12px;background:var(--window);border-bottom:1px solid var(--border);color:var(--muted)}
+.lastchat strong{color:var(--text)}
+.row .num{margin-left:auto;align-self:flex-end;color:var(--muted);font-size:max(9px, calc(var(--msg) - 2px));padding-left:10px}
+.forget-cols{flex:1;display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:8px;overflow:auto;min-height:0}
+.forget-cols h4{margin:0 0 6px;font-size:13px}
+.chip{display:flex;gap:8px;align-items:center;width:100%;margin:0 0 4px;padding:6px 8px;border:0;border-radius:4px;text-align:left;font-weight:600}
+.chip img{width:16px;height:16px}
+.chip.green{background:#33CC33;color:#0b1020}
+.chip.blue{background:#3D7BFF;color:#fff}
+.chip.grey{background:#6E6E78;color:#fff}
+.chip.pink{background:#E040A0;color:#fff}
+#forgetLine{flex:1;min-width:160px;background:#101014;color:var(--text);border-color:var(--border)}
+button.armed{background:#33CC33;color:#0b1020;border-color:#33CC33}
+.diamond-pop{position:relative;display:inline-flex}
+#forgetButtons{display:none;position:absolute;top:100%;right:0;z-index:5;margin-top:4px;width:220px;flex-wrap:wrap;gap:4px;padding:8px;background:#12141b;border:1px solid #2a2e38;border-radius:8px}
+#forgetButtons.open{display:flex}
 .tabs > button,.tabs > span,.user-tab{flex:none}
+.tabs button img{width:18px;height:18px;vertical-align:middle}
+.tabs button img.gap{margin-right:6px}
+.tabs button img.mark{filter:brightness(0)}
+.tabs button.on img.mark{filter:none}
+button[data-tab="youtube"],button[data-tab="youtube-chat"]{color:#FF2D2D}
+button.on[data-tab="youtube"],button.on[data-tab="youtube-chat"]{color:#FF2D2D}
 .user-tab{display:inline-flex;gap:2px;align-items:center}
 button.tab-close{margin:0}
 button,input,select{
-  font:inherit;color:#111;background:#ececf1;border:1px solid #6e6e78;border-radius:6px;
-  padding:3px 6px;cursor:pointer
+  font:inherit;color:#111;background:#ececf1;border:1px solid #6e6e78;border-radius:8px;
+  padding:3px 8px;cursor:pointer
 }
 button{font-size:13px}
 button:hover{border-color:#c8c8d0}
@@ -113,6 +142,9 @@ mark{background:orange;color:#111;border-radius:2px}
 }
 .menu button{display:block;width:100%;text-align:left;background:transparent;color:#efeff1;border:0}
 .menu button:hover{background:#2a3144}
+.gift{display:block;margin:0 0 8px;border-radius:8px;padding:8px 12px;font-weight:650;border:0;background:#2a2a2e;color:#fff}
+.gift.wait{background:orange;color:#111}
+.gift.done{color:#9a9aa3;border-color:transparent}
 .status{padding:6px 12px;background:var(--bar);color:var(--muted);border-top:1px solid var(--border);font-size:12px}
 .caption{margin:12px 0 0;color:#b8b8c0;min-height:3.2em}
 .lessons{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin-top:18px}
@@ -126,26 +158,36 @@ mark{background:orange;color:#111;border-radius:2px}
 </head>
 <body>
 <div class="wrap">
-  <h1>DuoChat 1.0</h1>
-  <p class="lead">DuoChat 1.0 reads Twitch and YouTube live chat together, on a Windows window or on an Android phone or tablet. You still type in your chat client. This is an interactive mock up of both apps with two fake logs. When online, real Twitch channel emotes are shown. Click or tap through it the same way you use the app.</p>
+  <h1>DuoChat 2.0</h1>
+  <p class="lead">DuoChat 2.0 reads Twitch and YouTube live chat together, on a Windows window or on an Android phone or tablet. You still type in your chat client. This is an interactive mock up of the app with two fake logs. When online, real Twitch channel emotes are shown. Click or tap through it the same way you use the app. 'Browser', 'ForgetMeNot', the Highlights views, Twitch IRC, and windows that float on their own are Windows. This copy matches the app.</p>
   <p class="download"><a href="https://drive.google.com/drive/folders/1RAyQC4moaIVvM6j1Hne3CxAnIxqcjN3X?usp=sharing">Download DuoChat</a></p>
   <div class="app" id="app">
     <div class="chrome">
-      <div class="brand">DuoChat 1.0 <button id="setup" type="button">Setup</button></div>
       <div class="tabs" id="tabs">
-        <button type="button" data-tab="all">All</button>
-        <button type="button" data-tab="twitch">Twitch</button>
-        <button type="button" data-tab="youtube">YouTube</button>
-        <button type="button" data-tab="twitch-chat">Twitch Chat</button>
-        <button type="button" data-tab="youtube-chat">YouTube Chat</button>
+        <button type="button" data-tab="browser" title="Browser"><img class="mark" src="webIcon.png" alt="Browser"></button>
+        <button type="button" data-tab="twitch-chat" title="Twitch Chat"><img class="gap" src="twitchIcon.png" alt="">Chat</button>
+        <button type="button" data-tab="all" title="Both chats"><img src="DuoChat.png" alt="Both chats"></button>
+        <button type="button" data-tab="twitch" title="Twitch"><img src="twitchIcon.png" alt="Twitch"></button>
+        <button type="button" data-tab="youtube" title="YouTube"><img src="youtubeIcon.png" alt="YouTube"></button>
+        <button type="button" data-tab="youtube-chat" title="YouTube Chat"><img class="gap" src="youtubeIcon.png" alt="">Chat</button>
         <button type="button" data-tab="chat-bubbles">Chat Bubbles</button>
+        <button type="button" data-tab="highlights" title="Highlights"><img class="mark" src="highlightIcon.png" alt="Highlights"></button>
+        <button type="button" data-tab="forget" title="ForgetMeNot"><img src="forgetmenotIcon.png" alt="ForgetMeNot"></button>
         <button type="button" data-tab="words">Word Bubbles</button>
-        <button type="button" data-tab="highlights">Highlights</button>
         <span id="userTabs"></span>
         <span id="logTab"></span>
-        <button type="button" data-tab="copied">Copied</button>
+        <button type="button" data-tab="copied" title="ScratchPad"><img class="mark" src="scratchpadIcon.png" alt="ScratchPad"></button>
+      </div>
+      <div class="brand">
+        <span class="title">DuoChat 2.0</span>
+        <span class="label">Last chat</span>
+        <input id="lastChat" type="text" placeholder="Nickname" aria-label="Last chat nickname"/>
+        <button id="clearRows" type="button">Clear</button>
+        <button id="desktop" type="button" title="Cover DuoChat with the theme color and show every open panel. Click again to come back.">Desktop</button>
+        <button id="setup" type="button">Setup</button>
       </div>
     </div>
+    <p class="lastchat" id="lastChatResult"></p>
     <div class="stage" id="stage">
       <div id="swipeGhost"></div>
       <section class="page" data-page="log">
@@ -201,11 +243,49 @@ mark{background:orange;color:#111;border-radius:2px}
       <section class="page" data-page="highlights">
         <div class="tool">
           <div>
-            <strong>Highlights</strong>
-            <div id="highlightStatus">Lines that matched a highlight today.</div>
+            <div>
+              <button type="button" data-hview="highlights">Highlights</button>
+              <button type="button" data-hview="channel">Channel</button>
+              <button type="button" data-hview="me">Me</button>
+              <button type="button" data-hview="system">System</button>
+              <button type="button" data-hview="streamelements">StreamElements</button>
+              <button type="button" data-hview="gifts">Gifts/Subs</button>
+            </div>
+            <div id="highlightStatus" style="margin-top:6px">Lines that matched a highlight today.</div>
           </div>
         </div>
         <div class="log" id="highlightLog"></div>
+      </section>
+      <section class="page" data-page="forget">
+        <div class="tool">
+          <button type="button" data-fplat="twitch">Twitch</button>
+          <button type="button" data-fplat="youtube">YouTube</button>
+          <span style="width:8px"></span>
+          <button type="button" data-fmode="hello">Hello</button>
+          <button type="button" data-fmode="goodbye">Goodbye</button>
+          <span class="grow"></span>
+          <span id="forgetStats"></span>
+          <span class="grow"></span>
+          <button type="button" id="forgetRestart" title="Close and reopen DuoChat in this mock.">Restart</button>
+        </div>
+        <div class="tool">
+          <button type="button" id="forgetBuild">Build</button>
+          <button type="button" id="forgetCopy">Copy</button>
+          <button type="button" id="forgetUndo">Undo</button>
+          <select id="forgetPrefix" aria-label="Greeting"></select>
+          <input id="forgetLine" type="text" placeholder="Enter text" aria-label="ForgetMeNot line"/>
+          <span class="diamond-pop">
+            <button type="button" id="forgetDiamond" title="Custom buttons. The popup stays open.">✦</button>
+            <span id="forgetButtons">
+              <button type="button" id="forgetButtonsClose">Close</button>
+              <button type="button" data-forget-insert="blu9Hii">blu9Hii</button>
+              <button type="button" data-forget-insert="blu9Byee">blu9Byee</button>
+              <button type="button" data-forget-insert="Nice">Nice</button>
+            </span>
+          </span>
+          <button type="button" id="forgetClear">Clear</button>
+        </div>
+        <div class="forget-cols" id="forgetCols"></div>
       </section>
       <section class="page" data-page="words">
         <div class="tool">
@@ -232,6 +312,10 @@ mark{background:orange;color:#111;border-radius:2px}
           </div>
         </div>
         <div class="tool">
+          <button type="button" data-lplat="all">All</button>
+          <button type="button" data-lplat="twitch">Twitch</button>
+          <button type="button" data-lplat="youtube">YouTube</button>
+          <span style="width:8px"></span>
           <button type="button" id="logLines">Lines</button>
           <button type="button" id="logChat">Chat Bubbles</button>
           <button type="button" id="logWords">Word Bubbles</button>
@@ -259,6 +343,13 @@ mark{background:orange;color:#111;border-radius:2px}
           <div id="highlightList" style="margin:8px 0"></div>
           <label class="check"><input id="highlightChannel" type="checkbox" checked> Highlight channel</label>
           <label class="check" style="margin-top:8px"><input id="highlightSounds" type="checkbox" checked> Highlight sounds</label>
+          <div style="margin-top:8px">A System line plays a bright G chord. A StreamElements line plays Red Ti. Notice replies in the app are one row each for a sub, a resub, a gift, a raid, and the other Twitch notices. Reply and Sound can each be off. Sound plays a two-note or three-note chord, and Test plays that row's chord. @nick is the person who subbed, gifted, or raided. A blank reply is ignored.</div>
+        </div>
+        <div class="note">
+          <strong>Me</strong> is your own nickname. The 'Highlights' tab uses it for Me, and 'ForgetMeNot' skips it. In this mock, Me is a practice name that someone mentions.
+          <div style="margin-top:8px"><input id="meName" type="text" value="Greenleaf_Legolas007" aria-label="Me" style="min-width:220px;background:#101014;color:var(--text);border-color:var(--border)"></div>
+          <label class="check" style="margin-top:8px"><input id="forgetToggle" type="checkbox" checked> ForgetMeNot</label>
+          <div style="margin-top:4px">Adds the 'ForgetMeNot' tab. The columns are Green - Arrivals, Blue - Chatters, Magenta - Parted, and Grey - Unknowns. The green Copy button saves every @name in the line: chatters with Hello on, parted with Goodbye on. Fill chats, when on, also puts that line in the Twitch Chat box and the Twitch IRC Chat box. Enter sends it there. A parted name stays parted when they speak or when you say hello. You move them back to chatters with the mouse. Unknowns leave the greeting count. The session list lives in Documents\DuoChat\ForgetMeNot\session.json. On an offline day a name stays green until you greet them, then stays blue. Each name has one color. Chatters and Parted clear 15 minutes after a bot, StreamElements, or System announces that the stream is over. Arrivals stay green until you say hello, including after a restart and a new day's log. Unknowns stay. The log file starts at midnight.</div>
         </div>
         <div class="note">
           <strong>Daily logs</strong> start on. On Windows, new lines go to Documents\DuoChat\Logs. On Android, the same file names stay in the app’s own DuoChat folder, and Open folder hands the plain text to another app. Uncheck this to keep chat only in the session. Files already saved stay on disk.
@@ -271,13 +362,13 @@ mark{background:orange;color:#111;border-radius:2px}
           <strong>Past Twitch chat</strong> is Windows. Paste a VOD, highlight, or clip link. Leave the times blank for the whole chat, or set a start and an end. Fetch opens that chat in LogViewer and saves it beside the daily logs. It is not added to today's live chat. Cancel stops the walk.
         </div>
         <div class="note">
-          <strong>Word bubbles page</strong> is Windows. DuoChat-Word-Bubbles.html sits next to DuoChat.exe. Internal opens it in this window. External opens it in the browser. Choose File starts in Documents\DuoChat\Logs. Common Words Filter reads CommonWords.json from that same folder.
+          <strong>Chat Bubbles and Word Bubbles</strong> on Windows are Browser bookmarks. ChatBubbles.html and WordBubbles.html sit next to DuoChat.exe. Choose a saved log from Documents\DuoChat\Logs and the page packs that file once. The common-word list is inside WordBubbles.html. A fetched VOD is still written beside the daily logs, and the bookmark opens that file.
         </div>
         <div class="note">
-          <strong>Emotes</strong> on Windows are kept under Documents\DuoChat\Emotes. The first time a picture is seen, DuoChat stores it under its original name. Later views use that file. The daily log still keeps the original address.
+          <strong>Emotes</strong> on Windows are kept under Documents\DuoChat\Emotes. A picture seen in chat is stored under its original name, and later views use that file. Opening the emote panel does not download again. At startup DuoChat decodes the first frame of every saved picture and the Google emoji sheet, keeps those stills, and the Emotes panel reuses them. A GIF plays when the pointer is on that picture. Setup has Download emotes, which fetches the checked channel's Twitch, BTTV, FFZ, and 7TV pictures a few at a time and skips files already saved. Those are image downloads, not chat messages, so they do not count toward the send limit. The daily log still keeps the original address.
         </div>
         <div class="note">
-          <strong>Tab buttons</strong> are 'All', 'Twitch', 'YouTube', 'Copied', and the other tabs on that row. They start at the current size. 'Setup' and the other buttons stay as they are.
+          <strong>Tab buttons</strong> are 'All', 'Twitch', 'YouTube', 'ScratchPad', and the other tabs on that row. They start at the current size. 'Setup' and the other buttons stay as they are.
           <div style="margin-top:8px">
             <button id="tabSmaller" type="button">Smaller</button>
             <button id="tabNormal" type="button">Normal</button>
@@ -311,27 +402,51 @@ mark{background:orange;color:#111;border-radius:2px}
   <div class="lessons">
     <article>
       <h2>Tabs</h2>
-      <p>'All' mixes both rooms by the clock. 'Twitch' and 'YouTube' each keep one room. 'Twitch Chat' and 'YouTube Chat' are the live chat rooms. They show the chat only, with no stream video and no stream audio, and they stay open while you look at the log. They are not a second copy of the log. 'Chat Bubbles' shows up to 1000 messages as circles. Latest, on the right, follows new lines. Start, on the left, shows the first 1000 and stays still. 'Word Bubbles' packs the top words, from 40 up to 1000. 'Highlights' keeps the lines that matched a highlight word, oldest first, with the name and the time. 'Copied' is the last tab. On Android, 'Setup' can show an 'Error Logs' tab just before 'Copied'. That tab stays out of the row until the switch is on. Drag or swipe a screen left or right to pull the next one over. The row ends at the first and last tab.</p>
+      <p>While DuoChat opens today's log and the saved rooms, DuoChat.png sits in the middle of the window. That splash goes away when startup is ready. The tab buttons sit in one row in front of the DuoChat 2.0 title. Browser, Highlights, ScratchPad, and ForgetMeNot show their pictures on the tab. Twitch IRC Chat shows the purple IRC picture, then Chat. When more tabs open, the row wraps onto a second line. 'Browser' is first on Windows and shows the stream. Its bookmarks include Chat Bubbles and Word Bubbles, which open ChatBubbles.html and WordBubbles.html beside DuoChat.exe and pack one saved log when you choose a file. 'Twitch Chat' and 'YouTube Chat' are the live chat rooms. They show the chat only and stay open while you look at the log. 'All' mixes both rooms by the clock. On All, Twitch, and YouTube, a Twitch line starts with the Twitch picture and a YouTube line starts with the YouTube picture. Twitch Chat, YouTube Chat, and Twitch IRC Chat start with the time. 'Twitch' and 'YouTube' each keep one room. 'Highlights' keeps the lines you might have missed. 'ForgetMeNot' keeps track of who you greeted. 'ScratchPad' is the last tab. Inside it, 'No Room' drafts a message, 'DuoPaint' is the drawing sheet, 'Copied' keeps the lines you copied, and 'Notes' is last. On Android, 'Chat Bubbles' draws 100 messages at a time as circles, 'Word Bubbles' packs the top words from 40 up to 1000, and 'Setup' can show an 'Error Logs' tab just before 'Copied'. Drag or swipe a screen left or right to pull the next one over. The row ends at the first and last tab. The practice buttons below still include the Android Chat Bubbles and Word Bubbles screens.</p>
+    </article>
+    <article>
+      <h2>The top bar</h2>
+      <p>Last chat takes a nickname. Press Enter to see that person's last message. The log starts a new file at midnight, and the row numbers count from the first line that day. Clear counts the rows again. Every message row keeps its number at the far right end of the row, apart from the words.</p>
+    </article>
+    <article>
+      <h2>Highlights</h2>
+      <p>Pick one view at a time. Highlights lists lines with your highlight words, such as taters. Channel lists lines from or about the open Twitch channel. Me lists lines that mention or reply to your Me name from 'Setup', including a highlight word that starts that name. A line goes to one button, and Me comes before Channel. Opening a button shows the lines already waiting there. Here Me is Greenleaf_Legolas007, so Mithrandir’s timeout shows up. System lists subs, gifts, and redeems. StreamElements lists those lines. Gifts/Subs lists the people who subbed, gifted, or raided, oldest first. A waiting name stays orange until you click it, and that button is marked Replied so it is not sent again. When a new line or gift arrives, the Highlights button stays orange until you click each one. Clicking Highlights opens the button that line came from. When more than one is waiting on that button, the button shows the count. Clicking a line removes it. Clear removes every item on the open button, including Gifts/Subs. Notes now live at the end of ScratchPad. Hold the mouse on a message time to see the full date. Drag the Highlights tab down to open it in its own window, and click X on that panel to dock it back.</p>
+    </article>
+    <article>
+      <h2>ForgetMeNot</h2>
+      <p>Each name in chat gets one button. The columns are Green - Arrivals, Blue - Chatters, Magenta - Parted, and Grey - Unknowns. Arrivals are here and waiting for a hello. Build writes a hello for every arrival. The green Copy button saves every @name in the line: chatters with Hello on, parted with Goodbye on. Fill chats, when on, also puts that line in the Twitch Chat box and the Twitch IRC Chat box. Enter sends it there. A parted name stays parted when they speak or when you say hello, and you move them back to chatters with the mouse. Parted names outline their chat lines and paint their Twitch IRC rows magenta. A chatter line is outlined in that nickname's color. An Arrival line keeps a green wash and italic text until you say hello. Nick tint, when on, also paints a light tint of the nickname color behind the row. Text shadow, when on, draws one dark copy of the nickname and the message, one pixel down and to the left, with the letter in front. The clock, emotes, and orange chips stay plain. White and Pink use dark gray. Twitch's web page is unchanged. A bot line is skipped. Unknowns are people who may be banned. Dropping a name there takes them off the greeting count, and a chatter or parted name drops that count by one. Your own hello or goodbye lines in chat save those names too. Right-click a button to add @name to the line. The list is saved, so a restart brings the buttons back. On an offline day a name stays green until you greet them, then stays blue. Each name has one color. Chatters and Parted clear 15 minutes after a bot, StreamElements, or System announces that the stream is over. Arrivals stay green until you say hello, including after a restart and a new day's log. Unknowns stay. The log file starts at midnight, and the buttons stay through midnight.</p>
+    </article>
+    <article>
+      <h2>Windows of their own</h2>
+      <p>On Windows, drag a tab button down to open that screen in its own window. DuoChat remembers its size and place. Floating windows snap to the screen edges and to each other, and windows that touch resize together. Click X on that panel to close the window and dock it back in DuoChat.</p>
     </article>
     <article>
       <h2>A name</h2>
-      <p>On Windows, right-click Won_Won_99 on “IT TASTES LIKE SPACE AND PEPPERONI”. On Android, long-press that name. Chat lists only that nickname. Shared/Paired lists lines that share a useful word. The panel title starts with Shared/Paired, and the original line keeps an orange outline. Click a message row to select it, and that same orange outline stays on the selected row. Word Bubbles opens a 'Won_Won_99 Words' tab. Copy puts that line on the scratch pad.</p>
+      <p>On Windows, right-click Won_Won_99 on “IT TASTES LIKE SPACE AND PEPPERONI”. On Android, long-press that name. Chat lists only that nickname. Shared/Paired lists lines that share a useful word. The panel title starts with Shared/Paired, and the original line keeps an orange outline. Click a message row to select it, and that same orange outline stays on the selected row. Copy puts that line on the scratch pad. Highlight paints that nickname in green Mi everywhere, and clicking it again turns that off. Note leaves a note on the line, and ScratchPad lists every note under Notes. Current Messages opens that person's last 10 lines, already at the newest one. On Android, Word Bubbles opens a 'Won_Won_99 Words' tab. On a Twitch IRC row the same menu also has Reply, Ignore, Copy name, and Copy message.</p>
     </article>
     <article>
       <h2>Word Bubbles</h2>
-      <p>Opening 'Word Bubbles' takes a still picture of the chat so far. How many starts at 40 and goes up to 1000. New lines do not move it. Leave and come back, or change All, Twitch, YouTube, How many, or Common words, and it takes another picture. On Windows, right-click taters to pin “what is taters?!”. On Android, long-press that bubble. Click or tap the note. A smaller note appears on tater, and on the slow-mode line, because that line contains tater. A message already on screen is not added again. × on a branch closes that branch. × on the first note, another right-click or long-press, or Esc or Back, closes the tree. The Windows wheel zooms and the middle mouse drags. Zoomed in, circles outside the window are skipped. Android pinches to zoom and uses two fingers to drag.</p>
+      <p>On Windows, the Word Bubbles bookmark opens WordBubbles.html beside DuoChat.exe. Choose a saved log and it packs that file once. The common-word list is inside the page. The wheel zooms and the middle mouse drags. On Android, opening 'Word Bubbles' takes a picture of the chat so far. How many starts at 40 and goes up to 1000. Change All, Twitch, YouTube, How many, or Common words, and it takes another picture. Long-press taters to pin “what is taters?!”. Tap the note. A smaller note appears on tater, and on the slow-mode line, because that line contains tater. A message already on screen is not added again. × on a branch closes that branch. × on the first note, another long-press, or Back, closes the tree. Pinch to zoom and use two fingers to drag. Zoomed in, circles outside the window are skipped.</p>
     </article>
     <article>
       <h2>One person</h2>
-      <p>The 'Smeagol_Raw_And_Wriggling Words' tab can be closed with ×. The main 'Word Bubbles' tab stays. Turn Common words off on a nickname tab to count every word that person used, including short ones such as “the”.</p>
+      <p>On Android, the 'Smeagol_Raw_And_Wriggling Words' tab can be closed with ×. The main 'Word Bubbles' tab stays. Turn Common words off on a nickname tab to count every word that person used, including short ones such as “the”.</p>
     </article>
     <article>
       <h2>Saved logs</h2>
-      <p>'Setup' starts with Save daily logs checked. Open the practice day. The tab reads 'LogViewer' and the date, so it is obvious those rows are a saved file and not the live rooms. Lines, Chat Bubbles, and Word Bubbles on that page pack this snapshot. × closes the tab and those views. Today's 'Chat Bubbles' and 'Word Bubbles' stay on the live rooms. On Windows, Open folder shows Documents\DuoChat\Logs. On Android, Open folder hands that day’s plain text to another app. A VOD, highlight, or clip link in 'Setup' also opens in LogViewer. Install a new Android copy over the app already on the phone. Logs, the scratch pad, and the saved rooms stay. Uninstalling the app removes that folder. If a chat tab stays blank, turn on 'Error Logs' in 'Setup'. The tab sits just before 'Copied'. Open it and take a screenshot.</p>
+      <p>'Setup' starts with Save daily logs checked. Open the practice day. The date stays, and the log size in kilobytes sits beside it. A large file is a Twitch session. A tiny file is a day without one. The tab reads 'LogViewer' and the date, so it is obvious those rows are a saved file and not the live rooms. Opening the day, or fetching a past Twitch chat, shows a progress card while the file is read and the lines are drawn. On Windows, that page is Lines and Notes. All, Twitch, and YouTube pick which room those lines and notes show. × closes the tab. On Android, All, Twitch, and YouTube also pick the room for Chat Bubbles, and Lines, Chat Bubbles, and Word Bubbles pack that snapshot. × closes those views too. Today's Android 'Chat Bubbles' and 'Word Bubbles' stay on the live rooms. On Windows, Open folder shows Documents\DuoChat\Logs. On Android, Open folder hands that day’s plain text to another app. A VOD, highlight, or clip link in 'Setup' also opens in LogViewer. Install a new Android copy over the app already on the phone. Logs, the scratch pad, and the saved rooms stay. Uninstalling the app removes that folder. If a chat tab stays blank, turn on 'Error Logs' in 'Setup'. The tab sits just before 'Copied'. Open it and take a screenshot.</p>
     </article>
     <article>
       <h2>Message rows</h2>
-      <p>In 'Setup', Text sets the message size. It starts at 14, and the time stays a little smaller. Up makes a row taller. Down makes it shorter. The sample changes as you choose, and every message row follows. The choice is remembered.</p>
+      <p>In 'Setup', Text sets the message size. It starts at 14, and the time stays a little smaller. Readability grows the whole window in steps of 25% from 100% to 200%. Up makes a row taller. Down makes it shorter. The sample changes as you choose, and every message row follows. The choice is remembered.</p>
+    </article>
+    <article>
+      <h2>Browser</h2>
+      <p>'Browser' is the first tab on Windows. It opens the default Twitch channel, and Home goes back there. Bookmarks starts with Google, Twitch, YouTube, Discord, Slither, Moonlander, Pac-Man, Torus, and DuoChat. Bookmark this page adds the open page, and Remove takes one off the list. History lists recent pages and pages by day. Extensions takes an unpacked extension folder. Drag the tab down to open it in its own window.</p>
+    </article>
+    <article>
+      <h2>Twitch IRC</h2>
+      <p>'Twitch IRC Chat' is Windows. It shows the checked channel in the Twitch look, or with IRC marks when Name Style is IRC marks. When 'Twitch Chat' is open on the same channel, a matching line takes that window's name color and badge pictures. The bar has Chat and IRCMonitor. Chat is the readable list. IRCMonitor is the raw log inside this tab, and it opens scrolled to the newest line on the connection that is already open. A repeated emote stays on that one line, and a shorter copy is removed before the window opens. The gear sets font size, edit box size, line spacing, name style, readable colours, timestamps, replies, show nick list, nick badges, and show /me. Show nick list puts one name column beside whichever view is open. Nick badges shows badge pictures, and off keeps the ordinary marks. Show /me hides that button. The ✦ popup stays open so a custom button can be clicked as many times as you want, and Close puts it away. A custom button GIF plays while that popup is open. Shift+right-click removes one. Hover an ASCII name and the face pops out at the text size of the chat you are in. Edit ASCII opens the text file so you can add your own. Web chat loads first, the last 50 messages or the last hour, whichever Twitch shows. IRC stays optional and starts after that page. The lines IRC does not already have are written once from that web chat, with the text, badges, colours, emotes, and reply. After that, IRC logs on its own. A magenta name paints that row magenta. A green name outlines it in green.</p>
     </article>
   </div>
 </div>
@@ -463,18 +578,24 @@ Y|22:18:52|OFFLINE||Connection Lost via Nazgûl DDoS Attack
   return {id, time, platform:side==="T"?"twitch":"youtube", badge, user, text};
 });
 const messages = raw.sort((a,b)=>a.time.localeCompare(b.time)||a.platform.localeCompare(b.platform)||a.id-b.id);
+{
+  const counts = {twitch:0, youtube:0};
+  messages.forEach(m=>{ m.num = ++counts[m.platform]; });
+}
 const captions = {
-  all:"'All' mixes both practice logs by the clock. The 'YouTube' lines start at 22:17:10. The purple pizza lines join at 22:17:35. This is a mock up, so emote names and emoji are drawn as ordinary Google emoji pictures. When online, real Twitch channel emotes are shown. A donation, a spoken line, a mod tag, and “stream offline” are ordinary rows.",
+  all:"'All' mixes both practice logs by the clock. The 'YouTube' lines start at 22:17:10. The purple pizza lines join at 22:17:35. This is a mock up, so emote names and emoji are drawn as ordinary Google emoji pictures. When online, real Twitch channel emotes are shown. A donation, a spoken line, a mod tag, and “stream offline” are ordinary rows. The number at the right end of each row counts the lines in that room.",
   twitch:"'Twitch' keeps the purple rows. This room is the void pizza. This is a mock up. When online, real Twitch channel emotes are shown.",
   youtube:"'YouTube' keeps the dark rows with the red edge. This room is the potato argument.",
   "twitch-chat":"'Twitch Chat' is the live Twitch room. It is the chat only, with no stream video and no stream audio. This is a mock up of that page. The real page stays open while you look at the other tabs. When online, real Twitch channel emotes are shown.",
   "youtube-chat":"'YouTube Chat' is the live YouTube room. It is the chat only, with no stream video and no stream audio. This is a mock up of that page. The real page stays open while you look at the other tabs.",
-  "chat-bubbles":"'Chat Bubbles' shows up to 1000 messages at a time. Latest, on the right, follows new lines. Start, on the left, shows the first 1000 and stays still. This practice log uses a shorter window so the slider has somewhere to move. A short line is a small circle. A longer line grows so the time and the paragraph fit. On Windows the wheel zooms and the middle mouse drags. Zoomed in, circles outside the window are skipped. On Android, pinch to zoom and drag with two fingers. Right-click or long-press opens the name menu.",
-  highlights:"'Highlights' lists every practice line that matches a highlight word, oldest first. The name and the time stay on the row. taters starts highlighted in orange. The channel name is green while Highlight channel is on.",
-  copied:"'Copied' is a scratch pad for a report. Delete works only here. The log itself is left alone. Two lines are already here: Granger’s crust, and Mithrandir’s timeout.",
-  words:"'Word Bubbles' takes a still picture when you open it. How many starts at 40 and goes up to 1000. New lines do not move that picture. Leave and come back, or change All, Twitch, YouTube, How many, or Common words, and it takes another picture. Common words starts on, so ordinary words stay out. Click or tap a bubble for its lines. Right-click on Windows, or long-press on Android, to pin the newest line. On Windows the wheel zooms and the middle mouse drags. Zoomed in, circles outside the window are skipped. On Android, pinch to zoom and drag with two fingers.",
-  setup:"'Setup' stores the rooms, the background, and the message rows on both apps. Message text starts at 14. Up makes a row taller and Down makes it shorter. The sample matches every message, and the choice is remembered. Graphics and the monitor flip are Windows only. Android turns with the device and can keep the screen on. Daily logs start on. White and Pink are the backgrounds that darken the purple 'Twitch' rows. 'YouTube' rows stay dark.",
-  "log-viewer":"'LogViewer' plus the date is a saved file. Lines, Chat Bubbles, and Word Bubbles on this page pack that file. × closes the page and those views. 'All', 'Twitch', and 'YouTube' stay live. This practice day is 2026-11-07."
+  "chat-bubbles":"This practice screen is the Android 'Chat Bubbles' tab. It draws 100 messages at a time. Latest, on the right, follows new lines. Start, on the left, shows the first 100 and stays still. This practice log uses a shorter window so the slider has somewhere to move. A short line is a small circle. A longer line grows so the time and the paragraph fit. Pinch to zoom and drag with two fingers. Zoomed in, circles outside the window are skipped. On Windows, Chat Bubbles is a Browser bookmark. It opens ChatBubbles.html beside DuoChat.exe and packs one saved log when you choose a file.",
+  highlights:"'Highlights' shows one view at a time. Highlights lists lines with your highlight words, and taters starts in orange. Channel lists lines from or about the open Twitch channel. Me lists lines that mention or reply to your Me name from 'Setup', including a highlight word that starts that name. A line goes to one button, and Me comes before Channel. Opening a button shows the lines already waiting there. System lists subs, gifts, and redeems. StreamElements lists those lines. Gifts/Subs lists the people who subbed, gifted, or raided. A waiting name stays orange until you click it, and that button is marked Replied. A new line turns the Highlights button orange until you click each one, and the button it came from shows a count when more than one is waiting. Clicking a line removes it. Clear removes every item on the open button, including Gifts/Subs. If chat runs past while you are typing, this tab is the list you missed. Drag the tab down to open it in its own window, and click X on that panel to dock it back.",
+  browser:"'Browser' is the first tab on Windows. It opens the default Twitch channel with the stream, and Home goes back there. Bookmarks starts with Google, Twitch, YouTube, Discord, Slither, Moonlander, Pac-Man, Torus, and DuoChat. Bookmark this page adds the open page, and Remove takes one off the list. It keeps its own logins, history, and extensions apart from the chat tabs. Drag the tab down to open it in its own window, and click X on that panel to dock it back.",
+  forget:"'ForgetMeNot' gives each name one button. The columns are Green - Arrivals, Blue - Chatters, Magenta - Parted, and Grey - Unknowns. Click Build, then the green Copy button: those names become chatters and are saved for the session. Fill chats, when on, also puts that line in the Twitch Chat box and the Twitch IRC Chat box. Enter sends it there. Switch to Goodbye, Build again, and Copy turns them parted. A parted name stays parted when they speak or when you say hello, and you move them back to chatters with the mouse. Parted names outline their chat lines and paint their Twitch IRC rows magenta. A chatter line is outlined in that nickname's color. An Arrival line keeps a green wash and italic text until you say hello. Nick tint, when on, also paints a light tint of the nickname color behind the row. Text shadow, when on, draws one dark copy of the nickname and the message, one pixel down and to the left, with the letter in front. The clock, emotes, and orange chips stay plain. White and Pink use dark gray. Twitch's web page is unchanged. A bot line is skipped. Unknowns leave the greeting count and stay when the other columns clear. Right-click or click a button to add @name to the line. On an offline day a name stays green until you greet them, then stays blue. Each name has one color. Chatters and Parted clear 15 minutes after a bot, StreamElements, or System announces that the stream is over. Arrivals stay green until you say hello, including after a restart and a new day's log. The log file starts at midnight.",
+  copied:"'ScratchPad' is the last tab. 'No Room' drafts a message, 'DuoPaint' is the drawing sheet, and 'Notes' is the last section. Delete works only on Copied. The log itself is left alone. Two lines are already here: Granger’s crust, and Mithrandir’s timeout.",
+  words:"This practice screen is the Android 'Word Bubbles' tab. It takes a picture when you open it. How many starts at 40 and goes up to 1000. Change All, Twitch, YouTube, How many, or Common words, and it takes another picture. Common words starts on, so ordinary words stay out. Tap a bubble for its lines. Long-press to pin the newest line. Pinch to zoom and drag with two fingers. Zoomed in, circles outside the window are skipped. On Windows, Word Bubbles is a Browser bookmark. It opens WordBubbles.html beside DuoChat.exe, packs one saved log when you choose a file, and keeps the common-word list inside the page.",
+  setup:"'Setup' stores the rooms, the background, and the message rows on both apps. On Windows, Twitch, YouTube, and Twitch IRC each have a switch. Turning one off hides its tabs and stops opening that chat. Twitch or YouTube stays on. Twitch IRC off leaves Twitch Chat on the web page. Me holds your own nickname for 'Highlights' and 'ForgetMeNot'. Message text starts at 14. Readability grows the whole window in steps of 25% from 100% to 200%. Up makes a row taller and Down makes it shorter. The sample matches every message, and the choice is remembered. Notice replies are one row each for a sub, a resub, a gift, a raid, and the other Twitch notices. Test plays that row's chord. Graphics and the monitor flip are Windows only. Android turns with the device and can keep the screen on. Daily logs start on. White and Pink are the backgrounds that darken the purple 'Twitch' rows. 'YouTube' rows stay dark.",
+  "log-viewer":"'LogViewer' plus the date is a saved file. On Windows it is Lines and Notes, and All, Twitch, and YouTube pick the room. On Android, All, Twitch, and YouTube also pick the room for Chat Bubbles, and Lines, Chat Bubbles, and Word Bubbles pack that file. × closes the page. 'All', 'Twitch', and 'YouTube' stay live. This practice day is 2026-11-07."
 };
 let tab = "all";
 let filter = "all";
@@ -486,6 +607,13 @@ let savedDay = "";
 let logMode = "lines";
 let sharedSource = -1;
 let selectedMessage = -1;
+let hview = "highlights";
+const gifts = [
+  {nick:"Won_Won_99", reply:"@Won_Won_99 blu9LoveMew", replied:false},
+  {nick:"Smeagol_Raw_And_Wriggling", reply:"@Smeagol_Raw_And_Wriggling blu9LoveMew", replied:false}
+];
+let logPlatform = "all";
+const msgNotes = {};
 const practiceDay = "2026-11-07";
 let notes = [];
 let nextNote = 1;
@@ -601,7 +729,7 @@ function paintText(text, query){
 function repaintHighlights(){
   paintLog();
   paintCopied();
-  $("savedLog").innerHTML = messages.map(m=>row(m,"")).join("");
+  paintSavedLines();
   if (tab==="words") paintWords(false);
   if (tab==="chat-bubbles") paintChatBubbles();
   if (tab==="highlights") paintHighlightHistory();
@@ -657,7 +785,8 @@ function row(m, extra="", q=""){
     : `<span class="name">${rich(badgeLabel[m.badge]||m.badge||m.user||"")}</span>`;
   const body = m.badge==="LIVE" ? esc(m.user) : rich(m.text, q);
   const source = m.id===sharedSource || m.id===selectedMessage ? " source" : "";
-  return `<article class="row ${m.platform}${source}" data-id="${m.id}">${icon(m)}<span class="time">${m.time}</span>${who}<span class="msg">${body}</span>${extra}</article>`;
+  const note = msgNotes[m.id] ? `<span class="tag" title="Note">📝 ${esc(msgNotes[m.id])}</span>` : "";
+  return `<article class="row ${m.platform}${source}" data-id="${m.id}">${icon(m)}<span class="time">${m.time}</span>${who}<span class="msg">${body}</span>${note}${extra}<span class="num">${m.num}</span></article>`;
 }
 function logSource(){
   if (filter==="twitch") return messages.filter(m=>m.platform==="twitch");
@@ -703,14 +832,58 @@ function paintCopied(){
   $("copiedLog").innerHTML = copied.map((m,i)=>row(m, `<button type="button" data-del="${i}">Delete</button>`)).join("")
     || `<div class="note">Nothing copied yet.</div>`;
 }
+function mentionsName(m, name){
+  const me = (name||"").trim().replace(/^@/,"").toLowerCase();
+  if (!me || (m.user||"").toLowerCase()===me) return false;
+  const text = (m.text||"").toLowerCase();
+  let at = text.indexOf(me);
+  while (at>=0){
+    const end = at+me.length;
+    if ((at===0 || !/[0-9a-z_]/.test(text[at-1])) && (end===text.length || !/[0-9a-z_]/.test(text[end]))) return true;
+    at = text.indexOf(me, at+1);
+  }
+  return false;
+}
 function paintHighlightHistory(){
-  const rules = activeRules();
-  const lines = messages.filter(m => highlightHits(m.user, rules).length || highlightHits(m.text, rules).length);
-  $("highlightStatus").textContent = lines.length
-    ? `${lines.length} highlight lines, oldest first.`
-    : "No highlight lines yet.";
-  $("highlightLog").innerHTML = lines.map(m=>row(m, "")).join("")
-    || `<div class="note">Lines that match a highlight word show up here, with the name and the time.</div>`;
+  document.querySelectorAll("[data-hview]").forEach(b=>b.classList.toggle("on", b.dataset.hview===hview));
+  const me = $("meName").value.trim();
+  let lines, status, empty;
+  if (hview==="channel"){
+    const rules = [{word:guideChannel, color:"Green"}];
+    lines = messages.filter(m => highlightHits(m.user, rules).length || highlightHits(m.text, rules).length);
+    status = lines.length ? `${lines.length} lines from or about ${guideChannel}, oldest first.` : `No lines from or about ${guideChannel} yet.`;
+    empty = `In the app, the open Twitch channel’s own lines and every line that says its name show up here. Nobody in this practice log says ${guideChannel}.`;
+  } else if (hview==="me"){
+    lines = me ? messages.filter(m => mentionsName(m, me)) : [];
+    status = !me ? "Enter your name under Me in Setup." : lines.length ? `${lines.length} lines mention or reply to you, oldest first.` : "No lines mention you yet.";
+    empty = "Lines that mention or reply to your Me name show up here.";
+  } else if (hview==="notes"){
+    lines = messages.filter(m => msgNotes[m.id]);
+    status = lines.length ? `${lines.length} notes, oldest first.` : "No notes yet. Right-click a nickname and choose Note.";
+    empty = "Right-click a nickname and choose Note.";
+  } else if (hview==="system"){
+    lines = [];
+    status = "No System lines in this practice log.";
+    empty = "In the app, System lists subs, gifts, and redeems. This practice log has none.";
+  } else if (hview==="streamelements"){
+    lines = [];
+    status = "No StreamElements lines in this practice log.";
+    empty = "In the app, StreamElements lists those lines. This practice log has none.";
+  } else if (hview==="gifts"){
+    const waiting = gifts.filter(item=>!item.replied).length;
+    $("highlightStatus").textContent = waiting
+      ? `${waiting} replies left. They stay until you click each one.`
+      : "Every gift and sub is marked Replied.";
+    $("highlightLog").innerHTML = gifts.map(item=>`<button type="button" class="gift${item.replied?" done":" wait"}" data-gift="${esc(item.nick)}">${esc(item.nick)}${item.replied?"  Replied":""}</button>`).join("");
+    return;
+  } else {
+    const rules = highlights.filter(item=>item.word.trim()).map(item=>({word:item.word.trim(), color:item.color}));
+    lines = messages.filter(m => highlightHits(m.user, rules).length || highlightHits(m.text, rules).length);
+    status = lines.length ? `${lines.length} highlight lines, oldest first.` : "No highlight lines yet.";
+    empty = "Lines that match a highlight word show up here, with the name and the time.";
+  }
+  $("highlightStatus").textContent = status;
+  $("highlightLog").innerHTML = lines.map(m=>row(m, "")).join("") || `<div class="note">${esc(empty)}</div>`;
   $("highlightLog").scrollTop = $("highlightLog").scrollHeight;
 }
 function bubbleFill(t){
@@ -1009,12 +1182,24 @@ const tabLooks = [
 ];
 function applyTabLook(){
   const look = tabLooks[tabStep];
-  document.querySelectorAll("#tabs button").forEach(b=>{
-    b.style.fontSize = look.font;
-    b.style.padding = b.classList.contains("tab-close") ? look.close : look.pad;
+  const tabs = $("tabs");
+  const buttons = [...tabs.querySelectorAll("button")];
+  let size = parseFloat(look.font);
+  const paint = scale=>buttons.forEach(b=>{
+    b.style.fontSize = size+"px";
+    const pad = (b.classList.contains("tab-close") ? look.close : look.pad).split(" ").map(v=>parseFloat(v)*scale);
+    b.style.padding = `${pad[0]}px ${pad[1]}px`;
   });
+  tabs.classList.remove("wrap");
+  paint(1);
+  while (tabs.scrollWidth > tabs.clientWidth + 1 && size > 10){
+    size -= 0.5;
+    paint(size / parseFloat(look.font));
+  }
+  tabs.classList.toggle("wrap", tabs.scrollWidth > tabs.clientWidth + 1);
   $("tabSizeLabel").textContent = look.name;
 }
+window.addEventListener("resize", ()=>applyTabLook());
 function paintUserTabs(){
   $("userTabs").innerHTML = userTabs.map(name=>`<span class="user-tab"><button type="button" data-tab="user" data-user="${esc(name)}" class="${tab==="words"&&wordUser.toLowerCase()===name.toLowerCase()?"on":""}">${esc(name)} Words</button><button class="tab-close" type="button" data-close="${esc(name)}" title="Close ${esc(name)} Words">×</button></span>`).join("");
   applyTabLook();
@@ -1026,17 +1211,24 @@ function paintLogTab(){
   applyTabLook();
 }
 function paintSavedDays(){
-  $("savedDays").innerHTML = `<button type="button" class="on" data-day="${practiceDay}">${practiceDay}</button>`;
+  $("savedDays").innerHTML = `<button type="button" class="on" data-day="${practiceDay}">${practiceDay} &nbsp; 18k</button>`;
 }
 function openSavedLog(){
   savedDay = practiceDay;
   logMode = "lines";
   $("logViewerTitle").textContent = `LogViewer ${savedDay}`;
-  $("savedLog").innerHTML = messages.map(m=>row(m,"")).join("");
+  paintSavedLines();
   show("log-viewer");
   setStatus(`LogViewer ${savedDay}. ${messages.length} saved lines. This is not live chat.`);
 }
+function savedSource(){
+  return logPlatform==="all" ? messages : messages.filter(m=>m.platform===logPlatform);
+}
+function paintSavedLines(){
+  $("savedLog").innerHTML = savedSource().map(m=>row(m,"")).join("");
+}
 function paintLogMode(){
+  document.querySelectorAll("[data-lplat]").forEach(b=>b.classList.toggle("on", b.dataset.lplat===logPlatform));
   $("logLines").classList.toggle("on", logMode==="lines");
   $("logChat").classList.toggle("on", logMode==="chat");
   $("logWords").classList.toggle("on", logMode==="words");
@@ -1072,8 +1264,8 @@ function fitSlots(host, circles, html){
   });
 }
 function paintLogChat(){
-  const total = messages.length;
-  const pool = messages.slice(Math.max(0, total-CHAT_WINDOW));
+  const source = savedSource();
+  const pool = source.slice(Math.max(0, source.length-CHAT_WINDOW));
   const packed = packCircles(pool.slice().sort((a,b)=>a.text.length-b.text.length||a.time.localeCompare(b.time)).map(msg=>({label:msg.user, n:msg.text.length, msg})));
   $("logChatStatus").textContent = `${pool.length} messages from this saved log`;
   const html = `<div class="cloud">${packed.map((circle,index)=>{
@@ -1202,7 +1394,15 @@ function show(next){
   $("setup").classList.toggle("on", next==="setup");
   document.querySelectorAll(".page").forEach(p=>p.classList.remove("show"));
   $("userPanel").classList.remove("show");
-  if (next==="twitch-chat"||next==="youtube-chat"){
+  if (next==="browser"){
+    document.querySelector('[data-page="live"]').classList.add("show");
+    $("liveUrl").textContent = `twitch.tv/${guideChannel}`;
+    $("liveBody").textContent = "This is a mock up of the 'Browser' tab. In the app it opens the default Twitch channel with the stream video and sound. Home goes back there. Bookmarks starts with Google, Twitch, YouTube, Discord, Slither, Moonlander, Pac-Man, Torus, and DuoChat. History, its own logins, and its own extensions stay apart from the chat tabs.";
+    $("liveNote").textContent = "'Browser' is the first tab on Windows. 'Twitch Chat' is next, so a short swipe moves between the stream and the room.";
+  } else if (next==="forget"){
+    document.querySelector('[data-page="forget"]').classList.add("show");
+    paintForget();
+  } else if (next==="twitch-chat"||next==="youtube-chat"){
     document.querySelector('[data-page="live"]').classList.add("show");
     const yt = next==="youtube-chat";
     $("liveUrl").textContent = yt?"youtube.com/live_chat":"twitch.tv/popout/chat";
@@ -1257,7 +1457,10 @@ function openUserWords(name){
 function openMenu(x,y,id,inCopied){
   const menu = $("menu");
   menu.dataset.id = id;
-  menu.innerHTML = ["Chat","Shared/Paired","Word Bubbles","Copy"].map(label=>`<button type="button" data-act="${label}">${label}</button>`).join("");
+  const msg = messages.find(m=>m.id===id);
+  const lit = msg && highlights.some(item=>item.word.toLowerCase()===msg.user.toLowerCase());
+  menu.innerHTML = ["Chat","Shared/Paired","Word Bubbles","Copy"].map(label=>`<button type="button" data-act="${label}">${label}</button>`).join("")
+    + `<button type="button" data-act="Highlight">${lit?"✓ ":""}Highlight</button><button type="button" data-act="Note">Note</button><button type="button" data-act="Current Messages">Current Messages</button>`;
   if (inCopied) menu.innerHTML += `<button type="button" data-act="Delete">Delete</button>`;
   menu.style.display = "block";
   menu.style.left = Math.min(x, innerWidth-210)+"px";
@@ -1454,9 +1657,10 @@ document.addEventListener("keydown", e=>{
   if (e.key==="Escape" && tab==="words" && notes.length) clearNotes();
 });
 document.addEventListener("contextmenu", e=>{
-  if (!e.target.classList.contains("name") || !e.target.dataset.id) return;
+  const name = e.target.closest(".name");
+  if (!name || !name.dataset.id) return;
   e.preventDefault();
-  openMenu(e.clientX, e.clientY, +e.target.dataset.id, !!e.target.closest("#copiedLog"));
+  openMenu(e.clientX, e.clientY, +name.dataset.id, !!name.closest("#copiedLog"));
 });
 $("menu").onclick = e=>{
   const act = e.target.dataset.act;
@@ -1502,6 +1706,27 @@ $("menu").onclick = e=>{
     if (!copied.includes(msg)) copied.push(msg);
     show("copied");
     setStatus("Copied that line.");
+  } else if (act==="Highlight"){
+    const at = highlights.findIndex(item=>item.word.toLowerCase()===msg.user.toLowerCase());
+    if (at>=0) highlights.splice(at,1);
+    else highlights.push({word:msg.user, color:"Green"});
+    repaintHighlights();
+    setStatus(at>=0 ? `${msg.user} is no longer highlighted.` : `${msg.user} is highlighted in green, Mi.`);
+  } else if (act==="Note"){
+    const text = prompt(`Note for ${msg.user}`, msgNotes[msg.id]||"");
+    if (text===null) return;
+    if (text.trim()) msgNotes[msg.id] = text.trim();
+    else delete msgNotes[msg.id];
+    repaintHighlights();
+    setStatus(text.trim() ? "Note saved. 'Highlights' lists it under Notes." : "Note removed.");
+  } else if (act==="Current Messages"){
+    if (!["all","twitch","youtube"].includes(tab)) show("all");
+    const lines = messages.filter(m=>m.user.toLowerCase()===msg.user.toLowerCase()).slice(-10);
+    $("userTitle").textContent = "Current Messages";
+    $("userLog").innerHTML = lines.map(m=>row(m)).join("") || `<div class="note">No recent messages.</div>`;
+    $("userPanel").classList.add("show");
+    $("userLog").scrollTop = $("userLog").scrollHeight;
+    setStatus(lines.length ? `Last ${lines.length} lines from ${msg.user}.` : "No recent messages.");
   } else if (act==="Delete"){
     const i = copied.indexOf(msg);
     if (i>=0) copied.splice(i,1);
@@ -1522,6 +1747,24 @@ document.addEventListener("click", e=>{
   selectedMessage = +row.dataset.id;
   markRows();
 });
+document.querySelectorAll("[data-lplat]").forEach(b=>b.onclick = ()=>{
+  logPlatform = b.dataset.lplat;
+  paintSavedLines();
+  paintLogMode();
+  setStatus(logPlatform==="all" ? "Log Viewer shows both rooms." : `Log Viewer shows ${logPlatform==="twitch"?"Twitch":"YouTube"} only.`);
+});
+document.querySelectorAll("[data-hview]").forEach(b=>b.onclick = ()=>{ hview = b.dataset.hview; paintHighlightHistory(); });
+$("highlightLog").addEventListener("click", e=>{
+  const nick = e.target.dataset.gift;
+  if (!nick) return;
+  const gift = gifts.find(item=>item.nick===nick);
+  if (!gift || gift.replied) return;
+  gift.replied = true;
+  if (navigator.clipboard) navigator.clipboard.writeText(gift.reply).catch(()=>{});
+  paintHighlightHistory();
+  setStatus("The reply is ready. That name is marked Replied.");
+});
+$("meName").oninput = ()=>{ if (tab==="highlights") paintHighlightHistory(); };
 $("logLines").onclick = ()=>{ logMode = "lines"; paintLogMode(); };
 $("logChat").onclick = ()=>{ logMode = "chat"; paintLogMode(); };
 $("logWords").onclick = ()=>{ logMode = "words"; paintLogMode(); };
@@ -1659,7 +1902,9 @@ $("chatCloud").addEventListener("click", e=>{
 });
 let screenDrag=null;
 function screenList(){
-  const list=["all","twitch","youtube","twitch-chat","youtube-chat","chat-bubbles","words","highlights"];
+  const list=["browser","twitch-chat","all","twitch","youtube","youtube-chat","chat-bubbles","highlights"];
+  if ($("forgetToggle").checked) list.push("forget");
+  list.push("words");
   userTabs.forEach(name=>list.push("user:"+name));
   if (savedDay) list.push("log-viewer");
   list.push("copied");
@@ -1745,6 +1990,144 @@ function endScreenDrag(e){
 }
 window.addEventListener("pointerup", endScreenDrag);
 window.addEventListener("pointercancel", endScreenDrag);
+
+const FORGET_PREFIX = {hello:["Hello","hi","hey"], goodbye:["Niters","Byes","Seeya"]};
+const FORGET_TAIL = {hello:"blu9Hii", goodbye:"blu9Byee"};
+const FORGET_COLS = [["green","Green - Arrivals"],["blue","Blue - Chatters"],["pink","Magenta - Parted"],["grey","Grey - Unknowns"]];
+let fplat = "twitch";
+let fmode = "hello";
+let forgetArmed = false;
+const forgetUndo = [];
+const forgetSaved = {twitch:{hello:new Set(), goodbye:new Set()}, youtube:{hello:new Set(), goodbye:new Set()}};
+const forgetPeople = {twitch:new Map(), youtube:new Map()};
+const forgetPeak = {twitch:{}, youtube:{}};
+function forgetSkip(m){
+  return !m.user || ["DONATION","TTS","OFFLINE","LIVE"].includes(m.badge)
+    || m.user.toLowerCase()===$("meName").value.trim().toLowerCase();
+}
+function forgetLoad(){
+  ["twitch","youtube"].forEach(platform=>{
+    const people = forgetPeople[platform];
+    const saved = forgetSaved[platform];
+    people.clear();
+    forgetPeak[platform] = {};
+    saved.hello.forEach(name=>people.set(name, saved.goodbye.has(name) ? "pink" : "blue"));
+    saved.goodbye.forEach(name=>people.set(name, "pink"));
+    messages.filter(m=>m.platform===platform && !forgetSkip(m)).forEach(m=>{
+      if (!people.has(m.user)) people.set(m.user, "green");
+    });
+  });
+}
+function forgetFind(platform, name){
+  const key = name.toLowerCase();
+  return [...forgetPeople[platform].keys()].find(item=>item.toLowerCase()===key);
+}
+function forgetNicks(text){
+  const found = [];
+  (text.match(/@[0-9A-Za-z_]+/g)||[]).forEach(token=>{
+    const name = token.slice(1);
+    if (!found.some(item=>item.toLowerCase()===name.toLowerCase())) found.push(name);
+  });
+  return found;
+}
+function paintForget(){
+  document.querySelectorAll("[data-fplat]").forEach(b=>b.classList.toggle("on", b.dataset.fplat===fplat));
+  document.querySelectorAll("[data-fmode]").forEach(b=>b.classList.toggle("on", b.dataset.fmode===fmode));
+  $("forgetPrefix").innerHTML = FORGET_PREFIX[fmode].map(word=>`<option>${word}</option>`).join("");
+  $("forgetCopy").classList.toggle("armed", forgetArmed);
+  const people = forgetPeople[fplat];
+  const peak = forgetPeak[fplat];
+  const icon = fplat==="twitch" ? "twitchIcon.png" : "youtubeIcon.png";
+  $("forgetCols").innerHTML = FORGET_COLS.map(([state,label])=>{
+    const names = [...people].filter(([,s])=>s===state).map(([name])=>name);
+    peak[state] = Math.max(peak[state]||0, names.length);
+    const chips = names.map(name=>`<button type="button" class="chip ${state}" data-chip="${esc(name)}"><img alt="" src="${icon}"/>${esc(name)}</button>`).join("");
+    return `<div><h4>${label} ${names.length}/${peak[state]}</h4>${chips}</div>`;
+  }).join("");
+  const saved = forgetSaved[fplat];
+  $("forgetStats").textContent = `Chatters ${people.size}   Hellos ${saved.hello.size}   Goodbyes ${saved.goodbye.size}`;
+}
+function forgetAppend(token){
+  const line = $("forgetLine");
+  line.value = line.value.trim() ? `${line.value.trim()} ${token}` : token;
+}
+document.querySelectorAll("[data-fplat]").forEach(b=>b.onclick = ()=>{ fplat = b.dataset.fplat; paintForget(); });
+document.querySelectorAll("[data-fmode]").forEach(b=>b.onclick = ()=>{ fmode = b.dataset.fmode; forgetArmed = false; paintForget(); });
+$("forgetBuild").onclick = ()=>{
+  forgetUndo.push($("forgetLine").value);
+  const want = fmode==="hello" ? "green" : "blue";
+  const names = [...forgetPeople[fplat]].filter(([,s])=>s===want).map(([name])=>"@"+name);
+  if (!names.length){
+    setStatus(fmode==="hello" ? "Nobody is green right now." : "Nobody is blue right now.");
+    return;
+  }
+  $("forgetLine").value = `${$("forgetPrefix").value} ${names.join(" ")} ${FORGET_TAIL[fmode]}`;
+  forgetArmed = true;
+  paintForget();
+  setStatus("Copy is green. Click it to copy the line and save those names.");
+};
+$("forgetCopy").onclick = ()=>{
+  const text = $("forgetLine").value;
+  if (!text.trim()){ setStatus("The ForgetMeNot line is empty."); return; }
+  navigator.clipboard?.writeText(text).catch(()=>{});
+  forgetArmed = false;
+  const names = forgetNicks(text);
+  names.forEach(raw=>{
+    const platform = forgetFind(fplat, raw) ? fplat : forgetFind(fplat==="twitch"?"youtube":"twitch", raw) ? (fplat==="twitch"?"youtube":"twitch") : fplat;
+    const name = forgetFind(platform, raw) || raw;
+    const saved = forgetSaved[platform];
+    if (fmode==="hello"){ saved.hello.add(name); saved.goodbye.delete(name); forgetPeople[platform].set(name, "blue"); }
+    else { saved.goodbye.add(name); forgetPeople[platform].set(name, "pink"); }
+  });
+  paintForget();
+  setStatus(names.length
+    ? `Copied. ${names.length} ${fmode} names saved for this session.`
+    : "Copied. That line has no @names to save.");
+};
+$("forgetUndo").onclick = ()=>{ if (forgetUndo.length) $("forgetLine").value = forgetUndo.pop(); };
+$("forgetClear").onclick = ()=>{ $("forgetLine").value = ""; forgetArmed = false; paintForget(); };
+$("forgetDiamond").onclick = ()=> $("forgetButtons").classList.toggle("open");
+$("forgetButtonsClose").onclick = ()=> $("forgetButtons").classList.remove("open");
+document.querySelectorAll("[data-forget-insert]").forEach(b=> b.onclick = ()=> forgetAppend(b.dataset.forgetInsert));
+$("forgetRestart").onclick = ()=>{
+  forgetLoad();
+  forgetArmed = false;
+  paintForget();
+  setStatus("DuoChat restarted. Blue and magenta came back from session.json. Only names missing from it are green.");
+};
+$("forgetCols").addEventListener("click", e=>{
+  const chip = e.target.closest("[data-chip]");
+  if (chip) forgetAppend("@"+chip.dataset.chip);
+});
+$("forgetCols").addEventListener("contextmenu", e=>{
+  const chip = e.target.closest("[data-chip]");
+  if (!chip) return;
+  e.preventDefault();
+  forgetAppend("@"+chip.dataset.chip);
+});
+$("forgetToggle").onchange = ()=>{
+  const on = $("forgetToggle").checked;
+  document.querySelector("#tabs button[data-tab='forget']").style.display = on ? "" : "none";
+  applyTabLook();
+  setStatus(on ? "The 'ForgetMeNot' tab is on." : "The 'ForgetMeNot' tab is off.");
+};
+$("clearRows").onclick = ()=>setStatus("In the app, Clear counts the 'Twitch' and 'YouTube' rows again. Numbers start at the first line today. The practice logs stay as they are.");
+$("desktop").onclick = ()=>{
+  const on = $("desktop").classList.toggle("on");
+  setStatus(on ? "The open panels sit on the theme color." : "DuoChat is back.");
+};
+$("lastChat").addEventListener("keydown", e=>{
+  if (e.key!=="Enter") return;
+  const name = $("lastChat").value.trim().replace(/^@/,"").toLowerCase();
+  const box = $("lastChatResult");
+  const last = name && [...messages].reverse().find(m=>m.user && m.user.toLowerCase()===name);
+  box.style.display = "block";
+  box.innerHTML = last
+    ? `<strong>${esc(last.user)} · ${last.time}</strong> ${esc(last.text)} <button type="button" id="lastChatClose" class="tiny">Close</button>`
+    : `${name?"Nobody by that name has spoken.":"Type a nickname, then press Enter."} <button type="button" id="lastChatClose" class="tiny">Close</button>`;
+  $("lastChatClose").onclick = ()=>{ box.style.display = "none"; };
+});
+forgetLoad();
 show("all");
 </script>
 </body>
