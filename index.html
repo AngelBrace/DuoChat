@@ -680,7 +680,7 @@ let selectedMessage = -1;
 let hview = "highlights";
 const gifts = [
   {nick:"Won_Won_99", reply:"@Won_Won_99 W", replied:false, time:"22:17:50", text:"Won_Won_99 gifted a Tier 1 Sub to PureBlood_Prince! They've given 2,205 Gift Subs in the channel!"},
-  {nick:"Smeagol_Raw_And_Wriggling", reply:"@Smeagol_Raw_And_Wriggling W", replied:false, time:"22:18:12", text:"Smeagol_Raw_And_Wriggling is gifting 100 Tier 1 Subs to blukitsune9's community. They've gifted a total of 8456 in the channel!"}
+  {nick:"Smeagol_Raw_And_Wriggling", reply:"@Smeagol_Raw_And_Wriggling W", replied:false, time:"22:18:12", text:"Smeagol_Raw_And_Wriggling is gifting 100 Tier 1 Subs to Won_Won_99's community. They've gifted a total of 8456 in the channel!"}
 ];
 let logPlatform = "all";
 const msgNotes = {};
@@ -744,7 +744,7 @@ function playBell(name){
     osc.stop(now + 0.36);
   });
 }
-const guideChannel = "blukitsune9";
+const guideChannel = "Won_Won_99";
 function activeRules(){
   const rules = highlights.filter(item=>item.word.trim()).map(item=>({word:item.word.trim(), color:HL[item.color]?item.color:"Orange"}));
   if (highlightChannel && !rules.some(rule=>rule.word.toLowerCase()===guideChannel))
