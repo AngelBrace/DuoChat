@@ -145,6 +145,21 @@ mark{background:orange;color:#111;border-radius:2px}
 .gift{display:block;margin:0 0 8px;border-radius:8px;padding:8px 12px;font-weight:650;border:0;background:#2a2a2e;color:#fff}
 .gift.wait{background:orange;color:#111}
 .gift.done{color:#9a9aa3;border-color:transparent}
+.row.system{background:#132428;border-left-color:#7FFFD4}
+button[data-hview="gifts"].wait{background:orange;color:#111}
+.scratch-pane{flex:1;min-height:0;display:flex;flex-direction:column}
+.room-bar{display:flex;gap:8px;align-items:center;padding:8px;background:var(--bar);border-top:1px solid var(--border)}
+.room-bar input{flex:1;background:#101014;color:var(--text);border:1px solid var(--border);border-radius:8px;padding:6px 8px}
+#roomHash{width:34px;height:32px;padding:0;background:#9146FF;color:#fff;border:0;font-weight:700}
+.row.plain{background:transparent;border-left-color:transparent}
+.paint{flex:1;min-height:0;display:flex}
+.paint-tools{width:220px;overflow:auto;background:#1e1e1e;padding:8px;color:#ccc;font-size:12px}
+.paint-tools button{margin:2px;color:#fff;background:#333;border:0}
+.paint-tools button.on{background:#4A90E2}
+.paint-tools label{display:block;margin:6px 2px 2px}
+.paint-stage{flex:1;position:relative;overflow:hidden;background:#2d2d30}
+#paintOut{width:100%;height:100%;display:block;touch-action:none;cursor:crosshair}
+#paintWheel{width:130px;height:130px;border-radius:50%;display:block;margin:6px 0;cursor:crosshair}
 .status{padding:6px 12px;background:var(--bar);color:var(--muted);border-top:1px solid var(--border);font-size:12px}
 .caption{margin:12px 0 0;color:#b8b8c0;min-height:3.2em}
 .lessons{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin-top:18px}
@@ -183,7 +198,7 @@ mark{background:orange;color:#111;border-radius:2px}
         <span class="label">Last chat</span>
         <input id="lastChat" type="text" placeholder="Nickname" aria-label="Last chat nickname"/>
         <button id="clearRows" type="button">Clear</button>
-        <button id="desktop" type="button" title="Cover DuoChat with the theme color and show every open panel. Click again to come back.">Desktop</button>
+        <button id="desktop" type="button" title="Cover DuoChat with the theme color and show every open panel. After a restart, this opens the panels that were out last time, at the same size and place. Click again to come back.">Desktop</button>
         <button id="setup" type="button">Setup</button>
       </div>
     </div>
@@ -234,11 +249,55 @@ mark{background:orange;color:#111;border-radius:2px}
       </section>
       <section class="page" data-page="copied">
         <div class="tool">
-          <strong>Scratch pad</strong>
-          <span class="grow"></span>
-          <button type="button" id="copyAll">Copy all</button>
+          <button type="button" data-scratch="room" class="on">No Room</button>
+          <button type="button" data-scratch="paint">DuoPaint</button>
+          <button type="button" data-scratch="copied">Copied</button>
         </div>
-        <div class="log" id="copiedLog"></div>
+        <div id="scratchRoom" class="scratch-pane">
+          <div class="log" id="roomLog"></div>
+          <div class="room-bar">
+            <button type="button" id="roomHash" title="Fake chat room. Click for plain text.">#</button>
+            <input id="roomBox" type="text" maxlength="500" placeholder="Send a message" aria-label="No Room"/>
+            <button type="button" id="roomEnter">Enter</button>
+          </div>
+        </div>
+        <div id="scratchPaint" class="scratch-pane" style="display:none">
+          <div class="paint">
+            <div class="paint-tools">
+              <div>
+                <button type="button" data-tool="brush" class="on">Brush</button>
+                <button type="button" data-tool="smudge">Smudge</button>
+                <button type="button" data-tool="eraser">Eraser</button>
+              </div>
+              <label>Brush size <input id="paintSize" type="range" min="1" max="100" value="18"></label>
+              <label>Opacity <input id="paintOpacity" type="range" min="5" max="100" value="35"></label>
+              <label>Edge hardness <input id="paintHard" type="range" min="5" max="99" value="30"></label>
+              <label>Color wheel <span id="paintSwatch" style="display:inline-block;width:16px;height:16px;background:#111;border:1px solid #fff;vertical-align:middle"></span></label>
+              <canvas id="paintWheel" width="130" height="130"></canvas>
+              <label>Brightness <input id="paintValue" type="range" min="0" max="100" value="95"></label>
+              <div id="paintColors"></div>
+              <div>
+                <label><input type="radio" name="paintLayer" value="2"> Layer 3</label>
+                <label><input type="radio" name="paintLayer" value="1"> Layer 2</label>
+                <label><input type="radio" name="paintLayer" value="0" checked> Layer 1</label>
+              </div>
+              <div id="paintZoom">Zoom: 100%</div>
+              <button type="button" id="paintReset">Reset view</button>
+              <button type="button" id="paintUndo">Undo</button>
+              <button type="button" id="paintClear">Clear layer</button>
+              <button type="button" id="paintSave" style="background:#27AE60">Save PNG</button>
+            </div>
+            <div class="paint-stage"><canvas id="paintOut"></canvas></div>
+          </div>
+        </div>
+        <div id="scratchCopied" class="scratch-pane" style="display:none">
+          <div class="tool">
+            <strong>Copied</strong>
+            <span class="grow"></span>
+            <button type="button" id="copyAll">Copy all</button>
+          </div>
+          <div class="log" id="copiedLog"></div>
+        </div>
       </section>
       <section class="page" data-page="highlights">
         <div class="tool">
@@ -343,13 +402,13 @@ mark{background:orange;color:#111;border-radius:2px}
           <div id="highlightList" style="margin:8px 0"></div>
           <label class="check"><input id="highlightChannel" type="checkbox" checked> Highlight channel</label>
           <label class="check" style="margin-top:8px"><input id="highlightSounds" type="checkbox" checked> Highlight sounds</label>
-          <div style="margin-top:8px">A System line plays a bright G chord. A StreamElements line plays Red Ti. Notice replies in the app are one row each for a sub, a resub, a gift, a raid, and the other Twitch notices. Reply and Sound can each be off. Sound plays a two-note or three-note chord, and Test plays that row's chord. @nick is the person who subbed, gifted, or raided. A blank reply is ignored.</div>
+          <div style="margin-top:8px">A System line plays a bright G chord. A StreamElements line plays an E major chime, E G# B together. Notice replies in the app are one row each for a sub, a resub, a gift, a raid, and the other Twitch notices. Reply and Sound can each be off. Sound plays a two-note or three-note chord, and Test plays that row's chord. @nick is the person who subbed, gifted, or raided. A blank reply is ignored.</div>
         </div>
         <div class="note">
           <strong>Me</strong> is your own nickname. The 'Highlights' tab uses it for Me, and 'ForgetMeNot' skips it. In this mock, Me is a practice name that someone mentions.
           <div style="margin-top:8px"><input id="meName" type="text" value="Greenleaf_Legolas007" aria-label="Me" style="min-width:220px;background:#101014;color:var(--text);border-color:var(--border)"></div>
           <label class="check" style="margin-top:8px"><input id="forgetToggle" type="checkbox" checked> ForgetMeNot</label>
-          <div style="margin-top:4px">Adds the 'ForgetMeNot' tab. The columns are Green - Arrivals, Blue - Chatters, Magenta - Parted, and Grey - Unknowns. The green Copy button saves every @name in the line: chatters with Hello on, parted with Goodbye on. Fill chats, when on, also puts that line in the Twitch Chat box and the Twitch IRC Chat box. Enter sends it there. A parted name stays parted when they speak or when you say hello. You move them back to chatters with the mouse. Unknowns leave the greeting count. The session list lives in Documents\DuoChat\ForgetMeNot\session.json. On an offline day a name stays green until you greet them, then stays blue. Each name has one color. Chatters and Parted clear 15 minutes after a bot, StreamElements, or System announces that the stream is over. Arrivals stay green until you say hello, including after a restart and a new day's log. Unknowns stay. The log file starts at midnight.</div>
+          <div style="margin-top:4px">Adds the 'ForgetMeNot' tab. The columns are Green - Arrivals, Blue - Chatters, Magenta - Parted, and Grey - Unknowns. The green Copy button saves every @name in the line: chatters with Hello on, parted with Goodbye on. Fill chats, when on, also puts that line in the Twitch Chat box and the Twitch IRC Chat box. Enter sends it there. A parted name stays parted when they speak or when you say hello. You move them back to chatters with the mouse. Unknowns leave the greeting count. The session list lives in Documents\DuoChat\ForgetMeNot\session.json. On an offline day a name stays green until you greet them, then stays blue. Each name has one color. The hour list on the ForgetMeNot panel is the last 24 hours, with the year, month, day, and hour. Message buttons and ForgetMeNot buttons start at zero from the hour you pick. They clear when System, a bot, or StreamElements announces that the stream is over, when Twitch goes offline, or after 15 minutes with no chat. The columns start empty. A name who chats after that is a new arrival. The log file starts at midnight.</div>
         </div>
         <div class="note">
           <strong>Daily logs</strong> start on. On Windows, new lines go to Documents\DuoChat\Logs. On Android, the same file names stay in the app’s own DuoChat folder, and Open folder hands the plain text to another app. Uncheck this to keep chat only in the session. Files already saved stay on disk.
@@ -406,15 +465,15 @@ mark{background:orange;color:#111;border-radius:2px}
     </article>
     <article>
       <h2>The top bar</h2>
-      <p>Last chat takes a nickname. Press Enter to see that person's last message. The log starts a new file at midnight, and the row numbers count from the first line that day. Clear counts the rows again. Every message row keeps its number at the far right end of the row, apart from the words.</p>
+      <p>Last chat takes a nickname. Press Enter to see that person's last message. The log starts a new file at midnight, and the row numbers count from the hour chosen on the ForgetMeNot panel, including across midnight and New Year. Clear counts the rows again. Every message row keeps its number at the far right end of the row, apart from the words.</p>
     </article>
     <article>
       <h2>Highlights</h2>
-      <p>Pick one view at a time. Highlights lists lines with your highlight words, such as taters. Channel lists lines from or about the open Twitch channel. Me lists lines that mention or reply to your Me name from 'Setup', including a highlight word that starts that name. A line goes to one button, and Me comes before Channel. Opening a button shows the lines already waiting there. Here Me is Greenleaf_Legolas007, so Mithrandir’s timeout shows up. System lists subs, gifts, and redeems. StreamElements lists those lines. Gifts/Subs lists the people who subbed, gifted, or raided, oldest first. A waiting name stays orange until you click it, and that button is marked Replied so it is not sent again. When a new line or gift arrives, the Highlights button stays orange until you click each one. Clicking Highlights opens the button that line came from. When more than one is waiting on that button, the button shows the count. Clicking a line removes it. Clear removes every item on the open button, including Gifts/Subs. Notes now live at the end of ScratchPad. Hold the mouse on a message time to see the full date. Drag the Highlights tab down to open it in its own window, and click X on that panel to dock it back.</p>
+      <p>Pick one view at a time. Highlights lists lines with your highlight words, such as taters. Channel lists lines from or about the open Twitch channel. Me lists lines that mention or reply to your Me name from 'Setup', including a highlight word that starts that name. A line goes to one button, and Me comes before Channel. Opening a button shows the lines already waiting there. Here Me is Greenleaf_Legolas007, so Mithrandir’s timeout shows up. System lists redeems and the other System lines. Subs and gifts move to Gifts/Subs as the System message, one line for each person. One gift or many from the same person is one line, and a community gift keeps the line that says they are gifting. StreamElements lists those lines. A waiting name stays orange until you click it, and that button is marked Replied so it is not sent again. When a new line or gift arrives, the Highlights button stays orange until you click each one. Clicking Highlights opens the button that line came from. When more than one is waiting on that button, the button shows the count. Clicking a line removes it. Clear removes every item on the open button, including Gifts/Subs. Notes now live at the end of ScratchPad. Hold the mouse on a message time to see the full date. Drag the Highlights tab down to open it in its own window, and click X on that panel to dock it back.</p>
     </article>
     <article>
       <h2>ForgetMeNot</h2>
-      <p>Each name in chat gets one button. The columns are Green - Arrivals, Blue - Chatters, Magenta - Parted, and Grey - Unknowns. Arrivals are here and waiting for a hello. Build writes a hello for every arrival. The green Copy button saves every @name in the line: chatters with Hello on, parted with Goodbye on. Fill chats, when on, also puts that line in the Twitch Chat box and the Twitch IRC Chat box. Enter sends it there. A parted name stays parted when they speak or when you say hello, and you move them back to chatters with the mouse. Parted names outline their chat lines and paint their Twitch IRC rows magenta. A chatter line is outlined in that nickname's color. An Arrival line keeps a green wash and italic text until you say hello. Nick tint, when on, also paints a light tint of the nickname color behind the row. Text shadow, when on, draws one dark copy of the nickname and the message, one pixel down and to the left, with the letter in front. The clock, emotes, and orange chips stay plain. White and Pink use dark gray. Twitch's web page is unchanged. A bot line is skipped. Unknowns are people who may be banned. Dropping a name there takes them off the greeting count, and a chatter or parted name drops that count by one. Your own hello or goodbye lines in chat save those names too. Right-click a button to add @name to the line. The list is saved, so a restart brings the buttons back. On an offline day a name stays green until you greet them, then stays blue. Each name has one color. Chatters and Parted clear 15 minutes after a bot, StreamElements, or System announces that the stream is over. Arrivals stay green until you say hello, including after a restart and a new day's log. Unknowns stay. The log file starts at midnight, and the buttons stay through midnight.</p>
+      <p>Each name in chat gets one button. The columns are Green - Arrivals, Blue - Chatters, Magenta - Parted, and Grey - Unknowns. Arrivals are here and waiting for a hello. A nick named by System or StreamElements is an arrival too. Build writes a hello for every arrival. The green Copy button saves every @name in the line: chatters with Hello on, parted with Goodbye on. Fill chats, when on, also puts that line in the Twitch Chat box and the Twitch IRC Chat box. Enter sends it there. A parted name stays parted when they speak or when you say hello, and you move them back to chatters with the mouse. Parted names outline their chat lines and paint their Twitch IRC rows magenta. A chatter line is outlined in that nickname's color. An Arrival line keeps a green wash and italic text until you say hello. Nick tint, when on, also paints a light tint of the nickname color behind the row. Text shadow, when on, draws one dark copy of the nickname and the message, one pixel down and to the left, with the letter in front. The clock, emotes, and orange chips stay plain. White and Pink use dark gray. Twitch's web page is unchanged. A bot line is skipped. Unknowns are people who may be banned. Dropping a name there takes them off the greeting count, and a chatter or parted name drops that count by one. Your own hello or goodbye lines in chat save those names too. Right-click a button to add @name to the line. The list is saved, so a restart brings the buttons back. On an offline day a name stays green until you greet them, then stays blue. Each name has one color. The hour list on the ForgetMeNot panel is the last 24 hours, with the year, month, day, and hour. Message buttons and ForgetMeNot buttons start at zero from the hour you pick. They clear when System, a bot, or StreamElements announces that the stream is over, when Twitch goes offline, or after 15 minutes with no chat. The columns start empty. A name who chats after that is a new arrival. The log file starts at midnight, and the buttons last until that session ends.</p>
     </article>
     <article>
       <h2>Windows of their own</h2>
@@ -589,10 +648,10 @@ const captions = {
   "twitch-chat":"'Twitch Chat' is the live Twitch room. It is the chat only, with no stream video and no stream audio. This is a mock up of that page. The real page stays open while you look at the other tabs. When online, real Twitch channel emotes are shown.",
   "youtube-chat":"'YouTube Chat' is the live YouTube room. It is the chat only, with no stream video and no stream audio. This is a mock up of that page. The real page stays open while you look at the other tabs.",
   "chat-bubbles":"This practice screen is the Android 'Chat Bubbles' tab. It draws 100 messages at a time. Latest, on the right, follows new lines. Start, on the left, shows the first 100 and stays still. This practice log uses a shorter window so the slider has somewhere to move. A short line is a small circle. A longer line grows so the time and the paragraph fit. Pinch to zoom and drag with two fingers. Zoomed in, circles outside the window are skipped. On Windows, Chat Bubbles is a Browser bookmark. It opens ChatBubbles.html beside DuoChat.exe and packs one saved log when you choose a file.",
-  highlights:"'Highlights' shows one view at a time. Highlights lists lines with your highlight words, and taters starts in orange. Channel lists lines from or about the open Twitch channel. Me lists lines that mention or reply to your Me name from 'Setup', including a highlight word that starts that name. A line goes to one button, and Me comes before Channel. Opening a button shows the lines already waiting there. System lists subs, gifts, and redeems. StreamElements lists those lines. Gifts/Subs lists the people who subbed, gifted, or raided. A waiting name stays orange until you click it, and that button is marked Replied. A new line turns the Highlights button orange until you click each one, and the button it came from shows a count when more than one is waiting. Clicking a line removes it. Clear removes every item on the open button, including Gifts/Subs. If chat runs past while you are typing, this tab is the list you missed. Drag the tab down to open it in its own window, and click X on that panel to dock it back.",
+  highlights:"'Highlights' shows one view at a time. Highlights lists lines with your highlight words, and taters starts in orange. Channel lists lines from or about the open Twitch channel. Me lists lines that mention or reply to your Me name from 'Setup', including a highlight word that starts that name. A line goes to one button, and Me comes before Channel. Opening a button shows the lines already waiting there. System lists redeems and the other System lines. Subs and gifts move to Gifts/Subs as the System message, one line for each person. One gift or many from the same person is one line, and a community gift keeps the line that says they are gifting. StreamElements lists those lines. A waiting name stays orange until you click it, and that button is marked Replied. A new line turns the Highlights button orange until you click each one, and the button it came from shows a count when more than one is waiting. Clicking a line removes it. Clear removes every item on the open button, including Gifts/Subs. If chat runs past while you are typing, this tab is the list you missed. Drag the tab down to open it in its own window, and click X on that panel to dock it back.",
   browser:"'Browser' is the first tab on Windows. It opens the default Twitch channel with the stream, and Home goes back there. Bookmarks starts with Google, Twitch, YouTube, Discord, Slither, Moonlander, Pac-Man, Torus, and DuoChat. Bookmark this page adds the open page, and Remove takes one off the list. It keeps its own logins, history, and extensions apart from the chat tabs. Drag the tab down to open it in its own window, and click X on that panel to dock it back.",
-  forget:"'ForgetMeNot' gives each name one button. The columns are Green - Arrivals, Blue - Chatters, Magenta - Parted, and Grey - Unknowns. Click Build, then the green Copy button: those names become chatters and are saved for the session. Fill chats, when on, also puts that line in the Twitch Chat box and the Twitch IRC Chat box. Enter sends it there. Switch to Goodbye, Build again, and Copy turns them parted. A parted name stays parted when they speak or when you say hello, and you move them back to chatters with the mouse. Parted names outline their chat lines and paint their Twitch IRC rows magenta. A chatter line is outlined in that nickname's color. An Arrival line keeps a green wash and italic text until you say hello. Nick tint, when on, also paints a light tint of the nickname color behind the row. Text shadow, when on, draws one dark copy of the nickname and the message, one pixel down and to the left, with the letter in front. The clock, emotes, and orange chips stay plain. White and Pink use dark gray. Twitch's web page is unchanged. A bot line is skipped. Unknowns leave the greeting count and stay when the other columns clear. Right-click or click a button to add @name to the line. On an offline day a name stays green until you greet them, then stays blue. Each name has one color. Chatters and Parted clear 15 minutes after a bot, StreamElements, or System announces that the stream is over. Arrivals stay green until you say hello, including after a restart and a new day's log. The log file starts at midnight.",
-  copied:"'ScratchPad' is the last tab. 'No Room' drafts a message, 'DuoPaint' is the drawing sheet, and 'Notes' is the last section. Delete works only on Copied. The log itself is left alone. Two lines are already here: Granger’s crust, and Mithrandir’s timeout.",
+  forget:"'ForgetMeNot' gives each name one button. The columns are Green - Arrivals, Blue - Chatters, Magenta - Parted, and Grey - Unknowns. A nick named by System or StreamElements is an arrival too. Click Build, then the green Copy button: those names become chatters and are saved for the session. Fill chats, when on, also puts that line in the Twitch Chat box and the Twitch IRC Chat box. Enter sends it there. Switch to Goodbye, Build again, and Copy turns them parted. A parted name stays parted when they speak or when you say hello, and you move them back to chatters with the mouse. Parted names outline their chat lines and paint their Twitch IRC rows magenta. A chatter line is outlined in that nickname's color. An Arrival line keeps a green wash and italic text until you say hello. Nick tint, when on, also paints a light tint of the nickname color behind the row. Text shadow, when on, draws one dark copy of the nickname and the message, one pixel down and to the left, with the letter in front. The clock, emotes, and orange chips stay plain. White and Pink use dark gray. Twitch's web page is unchanged. A bot line is skipped. Unknowns leave the greeting count and stay when the other columns clear. Right-click or click a button to add @name to the line. On an offline day a name stays green until you greet them, then stays blue. Each name has one color. The hour list on the ForgetMeNot panel is the last 24 hours, with the year, month, day, and hour. Message buttons and ForgetMeNot buttons start at zero from the hour you pick. They clear when System, a bot, or StreamElements announces that the stream is over, when Twitch goes offline, or after 15 minutes with no chat. Arrivals stay green until you say hello, including after a restart and a new day's log. The log file starts at midnight.",
+  copied:"'ScratchPad' is the last tab. 'No Room' drafts a message. The # mark is a fake chat room: type and press Enter to see a chat line. Click # and it reads abc, and the next line is plain text with no name, badges, or time. 'DuoPaint' draws on this page: brush, smudge, eraser, a color wheel, three layers, zoom, and Save PNG. 'Copied' keeps lines you copied. Delete works only on Copied. Two lines are already here: Granger’s crust, and Mithrandir’s timeout.",
   words:"This practice screen is the Android 'Word Bubbles' tab. It takes a picture when you open it. How many starts at 40 and goes up to 1000. Change All, Twitch, YouTube, How many, or Common words, and it takes another picture. Common words starts on, so ordinary words stay out. Tap a bubble for its lines. Long-press to pin the newest line. Pinch to zoom and drag with two fingers. Zoomed in, circles outside the window are skipped. On Windows, Word Bubbles is a Browser bookmark. It opens WordBubbles.html beside DuoChat.exe, packs one saved log when you choose a file, and keeps the common-word list inside the page.",
   setup:"'Setup' stores the rooms, the background, and the message rows on both apps. On Windows, Twitch, YouTube, and Twitch IRC each have a switch. Turning one off hides its tabs and stops opening that chat. Twitch or YouTube stays on. Twitch IRC off leaves Twitch Chat on the web page. Me holds your own nickname for 'Highlights' and 'ForgetMeNot'. Message text starts at 14. Readability grows the whole window in steps of 25% from 100% to 200%. Up makes a row taller and Down makes it shorter. The sample matches every message, and the choice is remembered. Notice replies are one row each for a sub, a resub, a gift, a raid, and the other Twitch notices. Test plays that row's chord. Graphics and the monitor flip are Windows only. Android turns with the device and can keep the screen on. Daily logs start on. White and Pink are the backgrounds that darken the purple 'Twitch' rows. 'YouTube' rows stay dark.",
   "log-viewer":"'LogViewer' plus the date is a saved file. On Windows it is Lines and Notes, and All, Twitch, and YouTube pick the room. On Android, All, Twitch, and YouTube also pick the room for Chat Bubbles, and Lines, Chat Bubbles, and Word Bubbles pack that file. × closes the page. 'All', 'Twitch', and 'YouTube' stay live. This practice day is 2026-11-07."
@@ -609,8 +668,8 @@ let sharedSource = -1;
 let selectedMessage = -1;
 let hview = "highlights";
 const gifts = [
-  {nick:"Won_Won_99", reply:"@Won_Won_99 blu9LoveMew", replied:false},
-  {nick:"Smeagol_Raw_And_Wriggling", reply:"@Smeagol_Raw_And_Wriggling blu9LoveMew", replied:false}
+  {nick:"Papa_Big_Boy", reply:"@Papa_Big_Boy W", replied:false, time:"16:43:09", text:"Papa_Big_Boy gifted a Tier 1 Sub to Lullabytes_! They've given 2,205 Gift Subs in the channel!"},
+  {nick:"Rick_Splatterson", reply:"@Rick_Splatterson W", replied:false, time:"16:45:23", text:"Rick_Splatterson is gifting 100 Tier 1 Subs to blukitsune9's community. They've gifted a total of 8456 in the channel!"}
 ];
 let logPlatform = "all";
 const msgNotes = {};
@@ -846,6 +905,10 @@ function mentionsName(m, name){
 }
 function paintHighlightHistory(){
   document.querySelectorAll("[data-hview]").forEach(b=>b.classList.toggle("on", b.dataset.hview===hview));
+  const giftButton = document.querySelector("[data-hview='gifts']");
+  const giftLines = gifts.filter(item=>!item.dismissed);
+  giftButton.classList.toggle("wait", giftLines.length>0 || gifts.some(item=>!item.replied));
+  giftButton.textContent = giftLines.length>1 ? `Gifts/Subs ${giftLines.length}` : "Gifts/Subs";
   const me = $("meName").value.trim();
   let lines, status, empty;
   if (hview==="channel"){
@@ -864,17 +927,22 @@ function paintHighlightHistory(){
   } else if (hview==="system"){
     lines = [];
     status = "No System lines in this practice log.";
-    empty = "In the app, System lists subs, gifts, and redeems. This practice log has none.";
+    empty = "In the app, System lists redeems and the other System lines. Subs and gifts are on Gifts/Subs. This practice log has none.";
   } else if (hview==="streamelements"){
     lines = [];
     status = "No StreamElements lines in this practice log.";
     empty = "In the app, StreamElements lists those lines. This practice log has none.";
   } else if (hview==="gifts"){
     const waiting = gifts.filter(item=>!item.replied).length;
-    $("highlightStatus").textContent = waiting
-      ? `${waiting} replies left. They stay until you click each one.`
-      : "Every gift and sub is marked Replied.";
-    $("highlightLog").innerHTML = gifts.map(item=>`<button type="button" class="gift${item.replied?" done":" wait"}" data-gift="${esc(item.nick)}">${esc(item.nick)}${item.replied?"  Replied":""}</button>`).join("");
+    const shown = gifts.filter(item=>!item.dismissed);
+    $("highlightStatus").textContent = shown.length
+      ? `${shown.length} gifts and subs, one line for each person, oldest first.`
+      : waiting
+        ? `${waiting} replies left. They stay until you click each one.`
+        : gifts.length ? "Every gift and sub is marked Replied." : "No gifts or subs in this practice log.";
+    const buttons = gifts.map(item=>`<button type="button" class="gift${item.replied?" done":" wait"}" data-gift="${esc(item.nick)}">${esc(item.nick)}${item.replied?"  Replied":""}</button>`).join("");
+    const lines = shown.map(item=>`<article class="row system" data-gift-line="${esc(item.nick)}"><img class="icon" alt="" src="twitchIcon.png"/><span class="time">${esc(item.time)}</span><span class="name">System</span><span class="msg">${esc(item.text)}</span></article>`).join("");
+    $("highlightLog").innerHTML = buttons + (lines || `<div class="note">No gifts or subs left in this practice log.</div>`);
     return;
   } else {
     const rules = highlights.filter(item=>item.word.trim()).map(item=>({word:item.word.trim(), color:item.color}));
@@ -1181,25 +1249,46 @@ const tabLooks = [
   {name:"Larger", font:"18px", pad:"8px 16px", close:"8px 12px"}
 ];
 function applyTabLook(){
+  if (applyTabLook.queued) return;
+  applyTabLook.queued = true;
+  requestAnimationFrame(()=>{
+    applyTabLook.queued = false;
+    fitTabLook();
+  });
+}
+function fitTabLook(){
   const look = tabLooks[tabStep];
   const tabs = $("tabs");
   const buttons = [...tabs.querySelectorAll("button")];
-  let size = parseFloat(look.font);
-  const paint = scale=>buttons.forEach(b=>{
-    b.style.fontSize = size+"px";
-    const pad = (b.classList.contains("tab-close") ? look.close : look.pad).split(" ").map(v=>parseFloat(v)*scale);
-    b.style.padding = `${pad[0]}px ${pad[1]}px`;
+  const base = parseFloat(look.font);
+  const pads = buttons.map(b=>(b.classList.contains("tab-close") ? look.close : look.pad).split(" ").map(Number));
+  const paint = scale=>buttons.forEach((b, i)=>{
+    b.style.fontSize = (base * scale) + "px";
+    b.style.padding = (pads[i][0] * scale) + "px " + (pads[i][1] * scale) + "px";
   });
   tabs.classList.remove("wrap");
   paint(1);
-  while (tabs.scrollWidth > tabs.clientWidth + 1 && size > 10){
-    size -= 0.5;
-    paint(size / parseFloat(look.font));
+  const room = tabs.clientWidth;
+  const full = tabs.scrollWidth;
+  if (room > 0 && full > room + 1){
+    paint(0.5);
+    const half = tabs.scrollWidth;
+    const variable = (full - half) * 2;
+    const fixed = full - variable;
+    const floor = 10 / base;
+    let scale = variable > 1 ? (room - 1 - fixed) / variable : floor;
+    if (!Number.isFinite(scale)) scale = floor;
+    scale = Math.min(1, Math.max(floor, scale));
+    paint(scale);
+    if (scale === floor && tabs.scrollWidth > tabs.clientWidth + 1) tabs.classList.add("wrap");
   }
-  tabs.classList.toggle("wrap", tabs.scrollWidth > tabs.clientWidth + 1);
   $("tabSizeLabel").textContent = look.name;
 }
-window.addEventListener("resize", ()=>applyTabLook());
+let tabResizeTimer = 0;
+window.addEventListener("resize", ()=>{
+  clearTimeout(tabResizeTimer);
+  tabResizeTimer = setTimeout(applyTabLook, 100);
+});
 function paintUserTabs(){
   $("userTabs").innerHTML = userTabs.map(name=>`<span class="user-tab"><button type="button" data-tab="user" data-user="${esc(name)}" class="${tab==="words"&&wordUser.toLowerCase()===name.toLowerCase()?"on":""}">${esc(name)} Words</button><button class="tab-close" type="button" data-close="${esc(name)}" title="Close ${esc(name)} Words">×</button></span>`).join("");
   applyTabLook();
@@ -1417,7 +1506,7 @@ function show(next){
     paintChatBubbles();
   } else if (next==="copied"){
     document.querySelector('[data-page="copied"]').classList.add("show");
-    paintCopied();
+    showScratch(scratchView);
   } else if (next==="highlights"){
     document.querySelector('[data-page="highlights"]').classList.add("show");
     paintHighlightHistory();
@@ -1485,28 +1574,30 @@ const logJump = {n:-1, dir:1};
 const userJump = {n:-1, dir:1};
 
 $("tabs").onclick = e=>{
-  if (e.target.dataset.closeLog){
+  const button = e.target.closest("button");
+  if (!button) return;
+  if (button.dataset.closeLog){
     savedDay = "";
     logMode = "lines";
     show(tab==="log-viewer" ? "all" : tab);
     return;
   }
-  if (e.target.dataset.tab==="log-viewer"){ show("log-viewer"); return; }
-  const close = e.target.dataset.close;
+  if (button.dataset.tab==="log-viewer"){ show("log-viewer"); return; }
+  const close = button.dataset.close;
   if (close){
     userTabs = userTabs.filter(n=>n!==close);
     if (wordUser===close){ wordUser=""; notes=[]; viewCustom=false; show("words"); }
     else paintUserTabs();
     return;
   }
-  if (e.target.dataset.tab==="user"){
-    wordUser = e.target.dataset.user;
+  if (button.dataset.tab==="user"){
+    wordUser = button.dataset.user;
     notes=[]; selectedWord=""; viewCustom=false;
     show("words");
     return;
   }
-  if (e.target.dataset.tab==="words"){ wordUser=""; viewCustom=false; }
-  if (e.target.dataset.tab){ notes=[]; show(e.target.dataset.tab); }
+  if (button.dataset.tab==="words"){ wordUser=""; viewCustom=false; }
+  if (button.dataset.tab){ notes=[]; show(button.dataset.tab); }
 };
 $("setup").onclick = ()=>show("setup");
 $("openLog").onclick = ()=>openSavedLog();
@@ -1755,7 +1846,16 @@ document.querySelectorAll("[data-lplat]").forEach(b=>b.onclick = ()=>{
 });
 document.querySelectorAll("[data-hview]").forEach(b=>b.onclick = ()=>{ hview = b.dataset.hview; paintHighlightHistory(); });
 $("highlightLog").addEventListener("click", e=>{
-  const nick = e.target.dataset.gift;
+  const line = e.target.closest("[data-gift-line]");
+  if (line){
+    const row = gifts.find(item=>item.nick===line.dataset.giftLine);
+    if (!row || row.dismissed) return;
+    row.dismissed = true;
+    paintHighlightHistory();
+    setStatus("That System line is cleared.");
+    return;
+  }
+  const nick = e.target.closest("[data-gift]")?.dataset.gift;
   if (!nick) return;
   const gift = gifts.find(item=>item.nick===nick);
   if (!gift || gift.replied) return;
@@ -1990,6 +2090,300 @@ function endScreenDrag(e){
 }
 window.addEventListener("pointerup", endScreenDrag);
 window.addEventListener("pointercancel", endScreenDrag);
+
+let scratchView = "room";
+const roomLines = [];
+let roomPlain = false;
+function paintRoom(){
+  const log = $("roomLog");
+  if (!log) return;
+  log.innerHTML = roomLines.length ? roomLines.map(line => line.plain
+    ? `<article class="row plain"><span class="msg">${esc(line.text)}</span></article>`
+    : `<article class="row twitch"><span class="time">${esc(line.time)}</span><button type="button" class="name" style="color:#9146FF">${esc(line.user)}</button><span class="msg">${esc(line.text)}</span></article>`
+  ).join("") : `<div class="note">Type here and press Enter. # posts a fake chat line. abc posts plain text. Nothing is sent.</div>`;
+  log.scrollTop = log.scrollHeight;
+}
+function postRoom(){
+  const text = $("roomBox").value.trim();
+  if (!text) return;
+  roomLines.push({
+    plain: roomPlain,
+    text,
+    time: new Date().toLocaleTimeString([], {hour:"numeric", minute:"2-digit"}),
+    user: "You"
+  });
+  $("roomBox").value = "";
+  paintRoom();
+}
+function showScratch(view){
+  scratchView = view;
+  ["room","paint","copied"].forEach(name=>{
+    const pane = $("scratch" + name[0].toUpperCase() + name.slice(1));
+    if (pane) pane.style.display = view===name ? "flex" : "none";
+  });
+  document.querySelectorAll("[data-scratch]").forEach(b=>b.classList.toggle("on", b.dataset.scratch===view));
+  if (view==="copied") paintCopied();
+  if (view==="room") paintRoom();
+  if (view==="paint"){
+    bootPaint();
+    requestAnimationFrame(bootPaint);
+  }
+}
+document.querySelector('[data-page="copied"]').addEventListener("click", e=>{
+  const pick = e.target.closest("[data-scratch]");
+  if (pick) showScratch(pick.dataset.scratch);
+});
+$("roomEnter").onclick = postRoom;
+$("roomBox").addEventListener("keydown", e=>{
+  if (e.key==="Enter"){ e.preventDefault(); postRoom(); }
+});
+$("roomHash").onclick = ()=>{
+  roomPlain = !roomPlain;
+  $("roomHash").textContent = roomPlain ? "abc" : "#";
+  $("roomHash").title = roomPlain ? "Plain text. Click for a fake chat room." : "Fake chat room. Click for plain text.";
+  $("roomBox").placeholder = roomPlain ? "Write" : "Send a message";
+};
+
+let paintReady = false;
+function bootPaint(){
+  const W = 760, H = 580;
+  const out = $("paintOut");
+  const stage = out.parentElement;
+  const layers = [0,1,2].map(()=>{
+    const c = document.createElement("canvas");
+    c.width = W; c.height = H;
+    return c;
+  });
+  const ctxs = layers.map(c=>c.getContext("2d"));
+  const undo = [[],[],[]];
+  let tool = "brush", size = 18, opacity = 0.35, hardness = 0.3, layer = 0;
+  let hue = 0, sat = 0, val = 0.95, color = "#111111";
+  let zoom = 1, panX = 24, panY = 16, drawing = false, panning = false, space = false, last = null;
+  function hexToRgb(hex){
+    const n = parseInt(hex.slice(1), 16);
+    return {r:(n>>16)&255, g:(n>>8)&255, b:n&255};
+  }
+  function hsvToRgb(h,s,v){
+    const i = Math.floor(h*6), f = h*6-i, p = v*(1-s), q = v*(1-f*s), t = v*(1-(1-f)*s);
+    const m = [v,q,p,p,t,v][i%6], n = [t,v,v,q,p,p][i%6], o = [p,p,t,v,v,q][i%6];
+    return {r:m*255|0, g:n*255|0, b:o*255|0};
+  }
+  function rgbToHex(r,g,b){
+    return "#" + [r,g,b].map(n=>n.toString(16).padStart(2,"0")).join("");
+  }
+  function paintColor(){
+    if (sat<=0.001) return;
+    const rgb = hsvToRgb(hue, sat, val);
+    color = rgbToHex(rgb.r, rgb.g, rgb.b);
+    $("paintSwatch").style.background = color;
+  }
+  function fitPaint(){
+    out.width = Math.max(1, stage.clientWidth);
+    out.height = Math.max(1, stage.clientHeight);
+    paintComposite();
+  }
+  function paintComposite(){
+    const g = out.getContext("2d");
+    g.setTransform(1,0,0,1,0,0);
+    g.clearRect(0,0,out.width,out.height);
+    g.fillStyle = "#2d2d30";
+    g.fillRect(0,0,out.width,out.height);
+    g.setTransform(zoom,0,0,zoom,panX,panY);
+    g.fillStyle = "#111";
+    g.fillRect(6,6,W,H);
+    g.fillStyle = "#fff";
+    g.fillRect(0,0,W,H);
+    layers.forEach(c=>g.drawImage(c,0,0));
+    $("paintZoom").textContent = "Zoom: " + Math.round(zoom*100) + "%";
+  }
+  function toCanvas(e){
+    const r = out.getBoundingClientRect();
+    const sx = out.width / r.width, sy = out.height / r.height;
+    return {x:((e.clientX-r.left)*sx - panX)/zoom, y:((e.clientY-r.top)*sy - panY)/zoom};
+  }
+  function dab(x,y){
+    const g = ctxs[layer];
+    const r = Math.max(0.5, size/2);
+    if (tool==="smudge"){
+      const sx = Math.max(0, Math.floor(x-r)), sy = Math.max(0, Math.floor(y-r));
+      const w = Math.min(W-sx, Math.ceil(r*2)), h = Math.min(H-sy, Math.ceil(r*2));
+      if (w<1 || h<1) return;
+      const data = g.getImageData(sx, sy, w, h);
+      let rr=0, gg=0, bb=0, aa=0, n=0;
+      for (let i=0;i<data.data.length;i+=16){
+        const a = data.data[i+3];
+        if (!a) continue;
+        rr += data.data[i]; gg += data.data[i+1]; bb += data.data[i+2]; aa += a; n++;
+      }
+      if (!n) return;
+      g.save();
+      g.globalAlpha = opacity;
+      g.fillStyle = `rgba(${rr/n|0},${gg/n|0},${bb/n|0},${(aa/n)/255})`;
+      g.beginPath(); g.arc(x,y,r*0.55,0,Math.PI*2); g.fill();
+      g.restore();
+      return;
+    }
+    const grad = g.createRadialGradient(x,y,r*hardness,x,y,r);
+    if (tool==="eraser"){
+      g.save();
+      g.globalCompositeOperation = "destination-out";
+      grad.addColorStop(0, `rgba(0,0,0,${opacity})`);
+      grad.addColorStop(1, "rgba(0,0,0,0)");
+      g.fillStyle = grad;
+      g.beginPath(); g.arc(x,y,r,0,Math.PI*2); g.fill();
+      g.restore();
+      return;
+    }
+    const rgb = hexToRgb(color);
+    grad.addColorStop(0, `rgba(${rgb.r},${rgb.g},${rgb.b},${opacity})`);
+    grad.addColorStop(1, `rgba(${rgb.r},${rgb.g},${rgb.b},0)`);
+    g.fillStyle = grad;
+    g.beginPath(); g.arc(x,y,r,0,Math.PI*2); g.fill();
+  }
+  function stroke(a,b){
+    const dx = b.x-a.x, dy = b.y-a.y;
+    const steps = Math.max(1, Math.ceil(Math.hypot(dx,dy) / Math.max(1, size*0.25)));
+    for (let i=1;i<=steps;i++) dab(a.x + dx*i/steps, a.y + dy*i/steps);
+  }
+  function snapshot(){
+    const stack = undo[layer];
+    stack.push(ctxs[layer].getImageData(0,0,W,H));
+    if (stack.length>20) stack.shift();
+  }
+  function sample(p){
+    if (p.x<0 || p.y<0 || p.x>=W || p.y>=H) return;
+    const px = p.x|0, py = p.y|0;
+    let r=255, g=255, b=255, a=255;
+    for (let i=0;i<layers.length;i++){
+      const d = ctxs[i].getImageData(px, py, 1, 1).data;
+      if (!d[3]) continue;
+      const t = d[3]/255;
+      r = d[0]*t + r*(1-t);
+      g = d[1]*t + g*(1-t);
+      b = d[2]*t + b*(1-t);
+    }
+    color = rgbToHex(r|0, g|0, b|0);
+    $("paintSwatch").style.background = color;
+    sat = 0;
+  }
+  const wheel = $("paintWheel");
+  const wg = wheel.getContext("2d");
+  const img = wg.createImageData(wheel.width, wheel.height);
+  const cx = wheel.width/2, cy = wheel.height/2, rad = cx-2;
+  for (let y=0;y<wheel.height;y++){
+    for (let x=0;x<wheel.width;x++){
+      const dx = x-cx, dy = y-cy, dist = Math.hypot(dx,dy);
+      const i = (y*wheel.width+x)*4;
+      if (dist>rad){ img.data[i+3]=0; continue; }
+      const rgb = hsvToRgb((Math.atan2(dy,dx)/(Math.PI*2)+1)%1, dist/rad, 1);
+      img.data[i]=rgb.r; img.data[i+1]=rgb.g; img.data[i+2]=rgb.b; img.data[i+3]=255;
+    }
+  }
+  wg.putImageData(img,0,0);
+  function pickWheel(e){
+    const r = wheel.getBoundingClientRect();
+    const x = (e.clientX-r.left) * wheel.width / r.width;
+    const y = (e.clientY-r.top) * wheel.height / r.height;
+    const dx = x-cx, dy = y-cy, dist = Math.hypot(dx,dy);
+    if (dist>rad) return;
+    hue = (Math.atan2(dy,dx)/(Math.PI*2)+1)%1;
+    sat = dist/rad;
+    paintColor();
+  }
+  wheel.addEventListener("pointerdown", e=>{ wheel.setPointerCapture(e.pointerId); pickWheel(e); });
+  wheel.addEventListener("pointermove", e=>{ if (e.buttons) pickWheel(e); });
+  $("paintColors").innerHTML = ["#111111","#FFFFFF","#E74C3C","#F1C40F","#3498DB"].map(c=>
+    `<button type="button" data-swatch="${c}" style="background:${c};width:22px;height:22px;border:1px solid #666"></button>`).join("");
+  $("paintColors").onclick = e=>{
+    const sw = e.target.dataset.swatch;
+    if (!sw) return;
+    color = sw;
+    sat = 0;
+    $("paintSwatch").style.background = color;
+  };
+  document.querySelectorAll("[data-tool]").forEach(b=>b.onclick = ()=>{
+    tool = b.dataset.tool;
+    document.querySelectorAll("[data-tool]").forEach(x=>x.classList.toggle("on", x===b));
+  });
+  $("paintSize").oninput = ()=>{ size = +$("paintSize").value; };
+  $("paintOpacity").oninput = ()=>{ opacity = +$("paintOpacity").value/100; };
+  $("paintHard").oninput = ()=>{ hardness = +$("paintHard").value/100; };
+  $("paintValue").oninput = ()=>{ val = +$("paintValue").value/100; paintColor(); };
+  document.querySelectorAll("[name=paintLayer]").forEach(b=>b.onchange = ()=>{ layer = +b.value; });
+  $("paintReset").onclick = ()=>{ zoom=1; panX=24; panY=16; paintComposite(); };
+  $("paintUndo").onclick = ()=>{
+    const snap = undo[layer].pop();
+    if (!snap) return;
+    ctxs[layer].putImageData(snap,0,0);
+    paintComposite();
+  };
+  $("paintClear").onclick = ()=>{
+    snapshot();
+    ctxs[layer].clearRect(0,0,W,H);
+    paintComposite();
+  };
+  $("paintSave").onclick = ()=>{
+    const file = document.createElement("canvas");
+    file.width = W; file.height = H;
+    const g = file.getContext("2d");
+    g.fillStyle = "#fff";
+    g.fillRect(0,0,W,H);
+    layers.forEach(c=>g.drawImage(c,0,0));
+    const a = document.createElement("a");
+    a.href = file.toDataURL("image/png");
+    a.download = "DuoPaint.png";
+    a.click();
+  };
+  out.addEventListener("pointerdown", e=>{
+    const p = toCanvas(e);
+    if (e.button===2){ sample(p); return; }
+    if (e.button===1 || space){ panning = true; last = {x:e.clientX, y:e.clientY}; out.setPointerCapture(e.pointerId); return; }
+    if (e.button!==0) return;
+    snapshot();
+    drawing = true;
+    last = p;
+    dab(p.x, p.y);
+    paintComposite();
+    out.setPointerCapture(e.pointerId);
+  });
+  out.addEventListener("pointermove", e=>{
+    if (panning && last){
+      const r = out.getBoundingClientRect();
+      panX += (e.clientX-last.x) * out.width / r.width;
+      panY += (e.clientY-last.y) * out.height / r.height;
+      last = {x:e.clientX, y:e.clientY};
+      paintComposite();
+      return;
+    }
+    if (!drawing || !last) return;
+    const p = toCanvas(e);
+    stroke(last, p);
+    last = p;
+    paintComposite();
+  });
+  out.addEventListener("pointerup", ()=>{ drawing=false; panning=false; last=null; });
+  out.addEventListener("pointercancel", ()=>{ drawing=false; panning=false; last=null; });
+  out.addEventListener("contextmenu", e=>e.preventDefault());
+  out.addEventListener("wheel", e=>{
+    e.preventDefault();
+    const before = toCanvas(e);
+    zoom = Math.min(8, Math.max(0.25, zoom * (e.deltaY<0 ? 1.1 : 1/1.1)));
+    const r = out.getBoundingClientRect();
+    const sx = out.width / r.width, sy = out.height / r.height;
+    panX = (e.clientX-r.left)*sx - before.x*zoom;
+    panY = (e.clientY-r.top)*sy - before.y*zoom;
+    paintComposite();
+  }, {passive:false});
+  window.addEventListener("keydown", e=>{
+    if (scratchView!=="paint" || e.target.matches("input,textarea")) return;
+    if (e.code==="Space"){ space = true; e.preventDefault(); }
+    if (e.ctrlKey && e.key.toLowerCase()==="z"){ e.preventDefault(); $("paintUndo").click(); }
+  });
+  window.addEventListener("keyup", e=>{ if (e.code==="Space") space = false; });
+  window.addEventListener("resize", fitPaint);
+  fitPaint();
+  bootPaint = fitPaint;
+}
 
 const FORGET_PREFIX = {hello:["Hello","hi","hey"], goodbye:["Niters","Byes","Seeya"]};
 const FORGET_TAIL = {hello:"blu9Hii", goodbye:"blu9Byee"};
