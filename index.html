@@ -9,15 +9,15 @@
   --window:#0e0e10;--bar:#18181b;--text:#efeff1;--muted:#aaaaaa;--border:#2f2f35;
 }
 *{box-sizing:border-box}
-html,body{margin:0;background:#07080c;color:#efeff1;font:14px/1.45 Segoe UI,system-ui,sans-serif}
-.wrap{max-width:1100px;margin:0 auto;padding:28px 18px 48px}
-h1{margin:0 0 8px;font-size:1.6rem;font-weight:650}
-.lead{margin:0 0 12px;max-width:72ch;color:#b8b8c0}
-.download{margin:0 0 18px}
+html,body{margin:0;height:100%;overflow:hidden;overscroll-behavior:none;background:#07080c;color:#efeff1;font:14px/1.45 Segoe UI,system-ui,sans-serif}
+.wrap{height:100%;max-width:none;margin:0;padding:10px 14px 8px;display:flex;flex-direction:column;overflow:hidden}
+.mast{display:flex;align-items:baseline;justify-content:space-between;gap:16px;flex:none;margin-bottom:8px}
+h1{margin:0;font-size:1.25rem;font-weight:650}
+.download{margin:0}
 .download a{color:#d7c4ff}
 .app{
   --msg:14px;--row-pad:8px;
-  height:760px;display:flex;flex-direction:column;background:var(--window);color:var(--text);
+  flex:1;min-height:0;height:auto;display:flex;flex-direction:column;background:var(--window);color:var(--text);
   border:1px solid var(--border);border-radius:14px;overflow:hidden;
   box-shadow:0 24px 70px rgba(0,0,0,.45)
 }
@@ -66,7 +66,8 @@ button:active{opacity:.82}
 button.on{background:#3a3a3d;color:#fff}
 button.tiny{padding:3px 6px;font-size:12px}
 input[type=search],input[type=range]{cursor:auto}
-.stage{flex:1;min-height:0;position:relative;overflow:hidden;touch-action:pan-y}
+.stage{flex:1;min-height:0;position:relative;overflow:hidden}
+.tabs{touch-action:none}
 #swipeGhost{display:none;position:absolute;inset:0;z-index:6;pointer-events:none;overflow:hidden;background:var(--window)}
 #swipeGhost .page{display:flex;height:100%}
 .page{display:none;height:100%;flex-direction:column}
@@ -161,7 +162,8 @@ button[data-hview="gifts"].wait{background:orange;color:#111}
 #paintOut{width:100%;height:100%;display:block;touch-action:none;cursor:crosshair}
 #paintWheel{width:130px;height:130px;border-radius:50%;display:block;margin:6px 0;cursor:crosshair}
 .status{padding:6px 12px;background:var(--bar);color:var(--muted);border-top:1px solid var(--border);font-size:12px}
-.caption{margin:12px 0 0;color:#b8b8c0;min-height:3.2em}
+.caption{margin:6px 0 0;color:#b8b8c0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:none}
+.page[data-page="guide"] .lessons{margin:0;padding:8px}
 .lessons{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin-top:18px}
 .lessons article{background:#12141b;border:1px solid #2a2e38;border-radius:12px;padding:12px 14px}
 .lessons h2{margin:0 0 6px;font-size:15px}
@@ -173,9 +175,10 @@ button[data-hview="gifts"].wait{background:orange;color:#111}
 </head>
 <body>
 <div class="wrap">
-  <h1>DuoChat 2.0</h1>
-  <p class="lead">DuoChat 2.0 reads Twitch and YouTube live chat together, on a Windows window or on an Android phone or tablet. You still type in your chat client. This is an interactive mock up of the app with two fake logs. When online, real Twitch channel emotes are shown. Click or tap through it the same way you use the app. 'Browser', 'ForgetMeNot', the Highlights views, Twitch IRC, and windows that float on their own are Windows. This copy matches the app.</p>
-  <p class="download"><a href="https://drive.google.com/drive/folders/1RAyQC4moaIVvM6j1Hne3CxAnIxqcjN3X?usp=sharing">Download DuoChat</a></p>
+  <div class="mast">
+    <h1>DuoChat 2.0</h1>
+    <p class="download"><a href="https://drive.google.com/drive/folders/1RAyQC4moaIVvM6j1Hne3CxAnIxqcjN3X?usp=sharing">Download DuoChat</a></p>
+  </div>
   <div class="app" id="app">
     <div class="chrome">
       <div class="tabs" id="tabs">
@@ -199,6 +202,7 @@ button[data-hview="gifts"].wait{background:orange;color:#111}
         <input id="lastChat" type="text" placeholder="Nickname" aria-label="Last chat nickname"/>
         <button id="clearRows" type="button">Clear</button>
         <button id="desktop" type="button" title="Cover DuoChat with the theme color and show every open panel. After a restart, this opens the panels that were out last time, at the same size and place. Click again to come back.">Desktop</button>
+        <button id="guide" type="button">Guide</button>
         <button id="setup" type="button">Setup</button>
       </div>
     </div>
@@ -454,14 +458,15 @@ button[data-hview="gifts"].wait{background:orange;color:#111}
         </div>
         <div class="swatches" id="swatches"></div>
       </section>
-    </div>
-    <div class="status" id="status">Practice logs loaded.</div>
-  </div>
-  <p class="caption" id="caption"></p>
-  <div class="lessons">
+      <section class="page" data-page="guide">
+        <div class="log lessons">
+          <article>
+            <h2>This page</h2>
+            <p>DuoChat 2.0 reads Twitch and YouTube live chat together, on a Windows window or on an Android phone or tablet. You still type in your chat client. This is an interactive mock up of the app with two fake logs. When online, real Twitch channel emotes are shown. Click a top button, or swipe that row, to change screens. The page itself does not scroll. 'Browser', 'ForgetMeNot', the Highlights views, Twitch IRC, and windows that float on their own are Windows. This copy matches the app.</p>
+          </article>
     <article>
       <h2>Tabs</h2>
-      <p>While DuoChat opens today's log and the saved rooms, DuoChat.png sits in the middle of the window. That splash goes away when startup is ready. The tab buttons sit in one row in front of the DuoChat 2.0 title. Browser, Highlights, ScratchPad, and ForgetMeNot show their pictures on the tab. Twitch IRC Chat shows the purple IRC picture, then Chat. When more tabs open, the row wraps onto a second line. 'Browser' is first on Windows and shows the stream. Its bookmarks include Chat Bubbles and Word Bubbles, which open ChatBubbles.html and WordBubbles.html beside DuoChat.exe and pack one saved log when you choose a file. 'Twitch Chat' and 'YouTube Chat' are the live chat rooms. They show the chat only and stay open while you look at the log. 'All' mixes both rooms by the clock. On All, Twitch, and YouTube, a Twitch line starts with the Twitch picture and a YouTube line starts with the YouTube picture. Twitch Chat, YouTube Chat, and Twitch IRC Chat start with the time. 'Twitch' and 'YouTube' each keep one room. 'Highlights' keeps the lines you might have missed. 'ForgetMeNot' keeps track of who you greeted. 'ScratchPad' is the last tab. Inside it, 'No Room' drafts a message, 'DuoPaint' is the drawing sheet, 'Copied' keeps the lines you copied, and 'Notes' is last. On Android, 'Chat Bubbles' draws 100 messages at a time as circles, 'Word Bubbles' packs the top words from 40 up to 1000, and 'Setup' can show an 'Error Logs' tab just before 'Copied'. Drag or swipe a screen left or right to pull the next one over. The row ends at the first and last tab. The practice buttons below still include the Android Chat Bubbles and Word Bubbles screens.</p>
+      <p>While DuoChat opens today's log and the saved rooms, DuoChat.png sits in the middle of the window. That splash goes away when startup is ready. The tab buttons sit in one row in front of the DuoChat 2.0 title. Browser, Highlights, ScratchPad, and ForgetMeNot show their pictures on the tab. Twitch IRC Chat shows the purple IRC picture, then Chat. When more tabs open, the row wraps onto a second line. 'Browser' is first on Windows and shows the stream. Its bookmarks include Chat Bubbles and Word Bubbles, which open ChatBubbles.html and WordBubbles.html beside DuoChat.exe and pack one saved log when you choose a file. 'Twitch Chat' and 'YouTube Chat' are the live chat rooms. They show the chat only and stay open while you look at the log. 'All' mixes both rooms by the clock. On All, Twitch, and YouTube, a Twitch line starts with the Twitch picture and a YouTube line starts with the YouTube picture. Twitch Chat, YouTube Chat, and Twitch IRC Chat start with the time. 'Twitch' and 'YouTube' each keep one room. 'Highlights' keeps the lines you might have missed. 'ForgetMeNot' keeps track of who you greeted. 'ScratchPad' is the last tab. Inside it, 'No Room' drafts a message, 'DuoPaint' is the drawing sheet, 'Copied' keeps the lines you copied, and 'Notes' is last. On Android, 'Chat Bubbles' draws 100 messages at a time as circles, 'Word Bubbles' packs the top words from 40 up to 1000, and 'Setup' can show an 'Error Logs' tab just before 'Copied'. Swipe the top buttons left or right to pull the next screen over. A drag inside a screen does not change tabs. The row ends at the first and last tab. The practice buttons still include the Android Chat Bubbles and Word Bubbles screens.</p>
     </article>
     <article>
       <h2>The top bar</h2>
@@ -507,7 +512,12 @@ button[data-hview="gifts"].wait{background:orange;color:#111}
       <h2>Twitch IRC</h2>
       <p>'Twitch IRC Chat' is Windows. It shows the checked channel in the Twitch look, or with IRC marks when Name Style is IRC marks. When 'Twitch Chat' is open on the same channel, a matching line takes that window's name color and badge pictures. The bar has Chat and IRCMonitor. Chat is the readable list. IRCMonitor is the raw log inside this tab, and it opens scrolled to the newest line on the connection that is already open. A repeated emote stays on that one line, and a shorter copy is removed before the window opens. The gear sets font size, edit box size, line spacing, name style, readable colours, timestamps, replies, show nick list, nick badges, and show /me. Show nick list puts one name column beside whichever view is open. Nick badges shows badge pictures, and off keeps the ordinary marks. Show /me hides that button. The ✦ popup stays open so a custom button can be clicked as many times as you want, and Close puts it away. A custom button GIF plays while that popup is open. Shift+right-click removes one. Hover an ASCII name and the face pops out at the text size of the chat you are in. Edit ASCII opens the text file so you can add your own. Web chat loads first, the last 50 messages or the last hour, whichever Twitch shows. IRC stays optional and starts after that page. The lines IRC does not already have are written once from that web chat, with the text, badges, colours, emotes, and reply. After that, IRC logs on its own. A magenta name paints that row magenta. A green name outlines it in green.</p>
     </article>
+        </div>
+      </section>
+    </div>
+    <div class="status" id="status">Practice logs loaded.</div>
   </div>
+  <p class="caption" id="caption"></p>
 </div>
 <div class="menu" id="menu"></div>
 <script>
@@ -649,7 +659,8 @@ const captions = {
   "youtube-chat":"'YouTube Chat' is the live YouTube room. It is the chat only, with no stream video and no stream audio. This is a mock up of that page. The real page stays open while you look at the other tabs.",
   "chat-bubbles":"This practice screen is the Android 'Chat Bubbles' tab. It draws 100 messages at a time. Latest, on the right, follows new lines. Start, on the left, shows the first 100 and stays still. This practice log uses a shorter window so the slider has somewhere to move. A short line is a small circle. A longer line grows so the time and the paragraph fit. Pinch to zoom and drag with two fingers. Zoomed in, circles outside the window are skipped. On Windows, Chat Bubbles is a Browser bookmark. It opens ChatBubbles.html beside DuoChat.exe and packs one saved log when you choose a file.",
   highlights:"'Highlights' shows one view at a time. Highlights lists lines with your highlight words, and taters starts in orange. Channel lists lines from or about the open Twitch channel. Me lists lines that mention or reply to your Me name from 'Setup', including a highlight word that starts that name. A line goes to one button, and Me comes before Channel. Opening a button shows the lines already waiting there. System lists redeems and the other System lines. Subs and gifts move to Gifts/Subs as the System message, one line for each person. One gift or many from the same person is one line, and a community gift keeps the line that says they are gifting. StreamElements lists those lines. A waiting name stays orange until you click it, and that button is marked Replied. A new line turns the Highlights button orange until you click each one, and the button it came from shows a count when more than one is waiting. Clicking a line removes it. Clear removes every item on the open button, including Gifts/Subs. If chat runs past while you are typing, this tab is the list you missed. Drag the tab down to open it in its own window, and click X on that panel to dock it back.",
-  browser:"'Browser' is the first tab on Windows. It opens the default Twitch channel with the stream, and Home goes back there. Bookmarks starts with Google, Twitch, YouTube, Discord, Slither, Moonlander, Pac-Man, Torus, and DuoChat. Bookmark this page adds the open page, and Remove takes one off the list. It keeps its own logins, history, and extensions apart from the chat tabs. Drag the tab down to open it in its own window, and click X on that panel to dock it back.",
+  browser:"'Browser' is the first tab on Windows. It opens the default Twitch channel with the stream, and Home goes back there. Bookmarks starts with Google, Twitch, YouTube, Discord, Slither, Moonlander, Pac-Man, Torus, and DuoChat. Bookmark this page adds the open page, and Remove takes one off the list. It keeps its own logins, history, and extensions apart from the chat tabs. Swipe the top buttons to change screens. Drag the tab down to open it in its own window, and click X on that panel to dock it back.",
+  guide:"Guide keeps the notes for this page. The page itself does not scroll. Click a top button, or swipe that row, to change screens. A list inside a screen still scrolls.",
   forget:"'ForgetMeNot' gives each name one button. The columns are Green - Arrivals, Blue - Chatters, Magenta - Parted, and Grey - Unknowns. A nick named by System or StreamElements is an arrival too. Click Build, then the green Copy button: those names become chatters and are saved for the session. Fill chats, when on, also puts that line in the Twitch Chat box and the Twitch IRC Chat box. Enter sends it there. Switch to Goodbye, Build again, and Copy turns them parted. A parted name stays parted when they speak or when you say hello, and you move them back to chatters with the mouse. Parted names outline their chat lines and paint their Twitch IRC rows magenta. A chatter line is outlined in that nickname's color. An Arrival line keeps a green wash and italic text until you say hello. Nick tint, when on, also paints a light tint of the nickname color behind the row. Text shadow, when on, draws one dark copy of the nickname and the message, one pixel down and to the left, with the letter in front. The clock, emotes, and orange chips stay plain. White and Pink use dark gray. Twitch's web page is unchanged. A bot line is skipped. Unknowns leave the greeting count and stay when the other columns clear. Right-click or click a button to add @name to the line. On an offline day a name stays green until you greet them, then stays blue. Each name has one color. The hour list on the ForgetMeNot panel is the last 24 hours, with the year, month, day, and hour. Message buttons and ForgetMeNot buttons start at zero from the hour you pick. They clear when System, a bot, or StreamElements announces that the stream is over, when Twitch goes offline, or after 15 minutes with no chat. Arrivals stay green until you say hello, including after a restart and a new day's log. The log file starts at midnight.",
   copied:"'ScratchPad' is the last tab. 'No Room' drafts a message. The # mark is a fake chat room: type and press Enter to see a chat line. Click # and it reads abc, and the next line is plain text with no name, badges, or time. 'DuoPaint' draws on this page: brush, smudge, eraser, a color wheel, three layers, zoom, and Save PNG. 'Copied' keeps lines you copied. Delete works only on Copied. Two lines are already here: Granger’s crust, and Mithrandir’s timeout.",
   words:"This practice screen is the Android 'Word Bubbles' tab. It takes a picture when you open it. How many starts at 40 and goes up to 1000. Change All, Twitch, YouTube, How many, or Common words, and it takes another picture. Common words starts on, so ordinary words stay out. Tap a bubble for its lines. Long-press to pin the newest line. Pinch to zoom and drag with two fingers. Zoomed in, circles outside the window are skipped. On Windows, Word Bubbles is a Browser bookmark. It opens WordBubbles.html beside DuoChat.exe, packs one saved log when you choose a file, and keeps the common-word list inside the page.",
@@ -1479,15 +1490,16 @@ function paintChatBubbles(){
 }
 function show(next){
   tab = next;
-  document.querySelectorAll("#tabs > button, #setup").forEach(b=>b.classList.toggle("on", b.dataset.tab===next));
+  document.querySelectorAll("#tabs > button, #setup, #guide").forEach(b=>b.classList.toggle("on", b.dataset.tab===next));
   $("setup").classList.toggle("on", next==="setup");
+  $("guide").classList.toggle("on", next==="guide");
   document.querySelectorAll(".page").forEach(p=>p.classList.remove("show"));
   $("userPanel").classList.remove("show");
   if (next==="browser"){
     document.querySelector('[data-page="live"]').classList.add("show");
     $("liveUrl").textContent = `twitch.tv/${guideChannel}`;
     $("liveBody").textContent = "This is a mock up of the 'Browser' tab. In the app it opens the default Twitch channel with the stream video and sound. Home goes back there. Bookmarks starts with Google, Twitch, YouTube, Discord, Slither, Moonlander, Pac-Man, Torus, and DuoChat. History, its own logins, and its own extensions stay apart from the chat tabs.";
-    $("liveNote").textContent = "'Browser' is the first tab on Windows. 'Twitch Chat' is next, so a short swipe moves between the stream and the room.";
+    $("liveNote").textContent = "'Browser' is the first tab on Windows. 'Twitch Chat' is next. Swipe the top buttons to move between them.";
   } else if (next==="forget"){
     document.querySelector('[data-page="forget"]').classList.add("show");
     paintForget();
@@ -1518,6 +1530,8 @@ function show(next){
   } else if (next==="setup"){
     document.querySelector('[data-page="setup"]').classList.add("show");
     paintSavedDays();
+  } else if (next==="guide"){
+    document.querySelector('[data-page="guide"]').classList.add("show");
   } else if (next==="log-viewer"){
     document.querySelector('[data-page="log-viewer"]').classList.add("show");
     paintLogMode();
@@ -1574,6 +1588,7 @@ const logJump = {n:-1, dir:1};
 const userJump = {n:-1, dir:1};
 
 $("tabs").onclick = e=>{
+  if (suppressTabClick){ suppressTabClick = false; return; }
   const button = e.target.closest("button");
   if (!button) return;
   if (button.dataset.closeLog){
@@ -1600,6 +1615,7 @@ $("tabs").onclick = e=>{
   if (button.dataset.tab){ notes=[]; show(button.dataset.tab); }
 };
 $("setup").onclick = ()=>show("setup");
+$("guide").onclick = ()=>show("guide");
 $("openLog").onclick = ()=>openSavedLog();
 $("openFolder").onclick = ()=>setStatus("In the app, Open folder shows Documents\\DuoChat\\Logs in File Explorer.");
 function setTabStep(step){
@@ -2061,9 +2077,11 @@ function clearScreenDrag(){
   $("swipeGhost").style.transform="";
   document.querySelectorAll(".page").forEach(page=>page.style.transform="");
 }
-$("stage").addEventListener("pointerdown", e=>{
-  if (e.button!==0 || tab==="setup" || e.target.closest("button, input, textarea, a, label")) return;
-  screenDrag={id:e.pointerId, x:e.clientX, y:e.clientY, on:false, origin:screenNow(), key:"", dx:0, index:0};
+let suppressTabClick = false;
+$("tabs").addEventListener("pointerdown", e=>{
+  if (e.button!==0) return;
+  const origin = screenNow() || screenList()[0];
+  screenDrag={id:e.pointerId, x:e.clientX, y:e.clientY, on:false, origin, key:"", dx:0, index:0};
 });
 window.addEventListener("pointermove", e=>{
   if (!screenDrag || e.pointerId!==screenDrag.id) return;
@@ -2080,6 +2098,8 @@ function endScreenDrag(e){
   const drag=screenDrag;
   screenDrag=null;
   if (!drag.on) return;
+  suppressTabClick = true;
+  setTimeout(()=>{ suppressTabClick = false; }, 0);
   const width=$("stage").clientWidth||1;
   const list=screenList();
   let index=drag.index;
